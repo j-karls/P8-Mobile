@@ -5,9 +5,14 @@ import os
 import socket
 import _thread
 
+def handleData(type, value):
+	# do stuff here, push to database maybe?
+	return 0
+
+# Each new client gets s
 def on_new_client(client,addr):
 	while(True):
-		data = client.recv(1024).decode()
+		data = client.recv(256).decode()
 		if not data:
 			print("Lost connection from %s" % str(addr))
 			client.close()
@@ -16,6 +21,7 @@ def on_new_client(client,addr):
 		sensortype = arr[0]
 		val = arr[1]
 		print("Sensor:\t" + sensortype + "\tValue:\t" + val)
+		handleData(sensortype, val)
     
 def startserver():
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,6 +30,7 @@ def startserver():
 	serversocket.bind((host, port))                                  
 	serversocket.listen(10)
 	return serversocket
+
 
 serversocket = startserver()
 
@@ -35,7 +42,3 @@ while(True):
    _thread.start_new_thread(on_new_client,(client,addr))
 
 s.close()
-
-
-def handleData(type, value):
-	return 0

@@ -34,18 +34,28 @@ y = np.sin(2*np.pi*f * (x/samplerate))
 
 server = connect()
 
+# While forever, send value for each outputinterval
+# If connection to server is lost, keep attempting to
+# reconnect.
 while(True):
 	for val in y:
 		measurement = np.around(val*factor, 2)
 		print(sensortype + '/' + str(measurement))
 		try:
 			server.send(str(sensortype + '/' +str(measurement)).encode())
-		except:
+		except socket.error:
 			print("Failed to send")
-			server = connect()
+			while(True):
+				print("Attempting reconnect...")
+				try:
+					server = connect()
+					break
+				except:
+					print("Attempt failed")
+				t.sleep(3)
+
+
 		t.sleep(outputinterval)
-
-
 
 # showing the exact location of the smaples
 #plt.stem(x,y, 'r', )
