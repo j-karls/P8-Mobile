@@ -9,7 +9,7 @@ import numpy as np # to work with numerical data efficiently
 import time as t
 import socket
 
-sensortype = "CO2"
+sensortype = "NO2"
 
 def connect():
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -31,8 +31,14 @@ x = np.arange(samplerate)
 y = np.sin(2*np.pi*f * (x/samplerate))
 
 #print(y)
-
-server = connect()
+while(True):
+	try:
+		server = connect()
+		print("Connected to server")
+		break
+	except:
+		print("Attempting to connect to server...")
+	t.sleep(3)
 
 # While forever, send value for each outputinterval
 # If connection to server is lost, keep attempting to
@@ -49,9 +55,10 @@ while(True):
 				print("Attempting reconnect...")
 				try:
 					server = connect()
+					print("Connected to server")
 					break
 				except:
-					print("Attempt failed")
+					None
 				t.sleep(3)
 
 
