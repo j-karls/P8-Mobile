@@ -2,8 +2,6 @@ package dk.aau.aiqshow
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothServerSocket
-import android.bluetooth.BluetoothSocket
 import android.content.SharedPreferences
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -13,9 +11,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.IOException
 import java.lang.Exception
-import java.nio.charset.Charset
 import java.util.*
 
 
@@ -27,14 +23,13 @@ class MainActivity : AppCompatActivity() {
     lateinit var btadapter : BluetoothAdapter
     lateinit var BTService : MyBluetoothService
     lateinit var device : BluetoothDevice
-    private var i : Int = 0
 
     val handler = object : Handler() {
         override fun handleMessage(msg: Message) {
-            Toast.makeText(this@MainActivity,BAToString(msg.obj as ByteArray, msg.arg1),Toast.LENGTH_SHORT).show()
-            text.text = BAToString(msg.obj as ByteArray, msg.arg1)
+            Toast.makeText(this@MainActivity,ByteArrayToString(msg.obj as ByteArray, msg.arg1),Toast.LENGTH_SHORT).show()
+            text.text = ByteArrayToString(msg.obj as ByteArray, msg.arg1)
             if (msg.arg1 > 0)
-                Log.i(TAG,BAToString(msg.obj as ByteArray, msg.arg1))
+                Log.i(TAG,ByteArrayToString(msg.obj as ByteArray, msg.arg1))
             else
                 Log.i(TAG,"SENT MESSAGE")
         }
@@ -94,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun BAToString(ba : ByteArray, size: Int) : String {
-        return ba.slice(0 .. size).toByteArray().toString(Charsets.UTF_8)
+    private fun ByteArrayToString(ba : ByteArray, size: Int) : String {
+        return ba.slice(0 until size).toByteArray().toString(Charsets.UTF_8)
     }
 }
