@@ -15,6 +15,7 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 import java.lang.Exception
+import java.nio.charset.Charset
 import java.util.*
 
 
@@ -23,11 +24,19 @@ var preferences : SharedPreferences? = null
 
 class MainActivity : AppCompatActivity() {
 
-    public lateinit var btadapter : BluetoothAdapter
+    lateinit var btadapter : BluetoothAdapter
+    lateinit var BTService : MyBluetoothService
+    lateinit var device : BluetoothDevice
+    private var i : Int = 0
 
     val handler = object : Handler() {
         override fun handleMessage(msg: Message) {
-            Toast.makeText(this@MainActivity,msg.toString(),Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity,BAToString(msg.obj as ByteArray, msg.arg1),Toast.LENGTH_SHORT).show()
+            text.text = BAToString(msg.obj as ByteArray, msg.arg1)
+            if (msg.arg1 > 0)
+                Log.i(TAG,BAToString(msg.obj as ByteArray, msg.arg1))
+            else
+                Log.i(TAG,"SENT MESSAGE")
         }
     }
 
@@ -37,22 +46,45 @@ class MainActivity : AppCompatActivity() {
         preferences = this.getSharedPreferences("prefs",0)
 
         setPrefs()
+        btadapter = BluetoothAdapter.getDefaultAdapter()
+        BTService = MyBluetoothService(handler)
+        device = btadapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
 
         Log.d(TAG,preferences!!.getString("UUID","error"))
-        btadapter = BluetoothAdapter.getDefaultAdapter()
+
 
     }
 
-    fun buttonClick(view: View) {
-        Log.d(TAG,"START-BT")
-        val device: BluetoothDevice = btadapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
+    fun buttonConnect(view: View) {
         try {
-            val a = MyBluetoothService(handler).ConnectThread(device)
+            BTService.ConnectThread(device).start()
+            Thread.sleep(500)
+            BTService.ConnectedThread().start()
         }
         catch (e : Exception) {
             Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+            Log.e(TAG,e.message)
         }
-        Log.d(TAG,"END-BT")
+    }
+
+    fun buttonDisConnect(view: View) {
+        try {
+            BTService.ConnectThread(device).cancel()
+        }
+        catch (e : Exception) {
+            Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+            Log.e(TAG,e.message)
+        }
+    }
+
+    fun buttonWrite(view: View) {
+        try {
+            BTService.ConnectedThread().write(("GET").toByteArray())
+        }
+        catch (e : Exception) {
+            Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+            Log.e(TAG,e.message)
+        }
     }
 
     private fun setPrefs() {
@@ -60,5 +92,9 @@ class MainActivity : AppCompatActivity() {
             val uuid = UUID.randomUUID()
             preferences!!.edit().putString("UUID",uuid.toString()).apply()
         }
+    }
+
+    private fun BAToString(ba : ByteArray, size: Int) : String {
+        return ba.slice(0 .. size).toByteArray().toString(Charsets.UTF_8)
     }
 }

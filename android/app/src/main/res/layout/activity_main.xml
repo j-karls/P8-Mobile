@@ -18,7 +18,7 @@
             app:layout_constraintTop_toTopOf="parent"/>
     <Button
             android:text="Connect"
-            android:onClick="buttonClick"
+            android:onClick="buttonConnect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button"
@@ -28,12 +28,14 @@
     />
     <Button
             android:text="DISCONNECT"
+            android:onClick="buttonDisConnect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button2" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"
             android:layout_marginBottom="64dp" app:layout_constraintBottom_toBottomOf="parent"/>
     <Button
             android:text="Write"
+            android:onClick="buttonWrite"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button3" app:layout_constraintStart_toEndOf="@+id/button"

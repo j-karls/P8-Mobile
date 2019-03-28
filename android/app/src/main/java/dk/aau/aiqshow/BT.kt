@@ -5,13 +5,10 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
-import android.os.Message
 import android.util.Log
-import android.widget.Toast
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.*
 
 
 
@@ -27,13 +24,14 @@ const val MESSAGE_TOAST: Int = 2
 
 class MyBluetoothService(
     // handler that gets info from Bluetooth service
-    private val handler: Handler
-) {
+    private val handler: Handler) {
 
-    inner class ConnectedThread(private val mmSocket: BluetoothSocket) : Thread() {
+    private lateinit var succ: BluetoothSocket
 
-        private val mmInStream: InputStream = mmSocket.inputStream
-        private val mmOutStream: OutputStream = mmSocket.outputStream
+    inner class ConnectedThread : Thread() {
+
+        private val mmInStream: InputStream = succ.inputStream
+        private val mmOutStream: OutputStream = succ.outputStream
         private val mmBuffer: ByteArray = ByteArray(1024) // mmBuffer store for the stream
 
         override fun run() {
@@ -83,7 +81,7 @@ class MyBluetoothService(
         // Call this method from the main activity to shut down the connection.
         fun cancel() {
             try {
-                mmSocket.close()
+                succ.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
@@ -102,26 +100,28 @@ class MyBluetoothService(
 
         public override fun run() {
             // Cancel discovery because it otherwise slows down the connection.
+            succ = mmSocket as BluetoothSocket
+
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
 
 
 
 
-            mmSocket?.use { socket ->
+            succ.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
                 socket.connect()
 
                 // The connection attempt succeeded. Perform work associated with
                 // the connection in a separate thread.
-                MyBluetoothService(handler).ConnectedThread(socket).run()
+                this@MyBluetoothService.ConnectedThread().run()
             }
         }
 
         // Closes the client socket and causes the thread to finish.
         fun cancel() {
             try {
-                mmSocket?.close()
+                succ.close()
             } catch (e: IOException) {
                 Log.e(dk.aau.aiqshow.TAG, "Could not close the client socket", e)
             }
