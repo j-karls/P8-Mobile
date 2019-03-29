@@ -23,10 +23,9 @@ class MainActivity : AppCompatActivity() {
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _weakRef = WeakReference(this)
     private val _handler = myHandler(_weakRef)
-    private val _bTService : MyBluetoothService = MyBluetoothService(_handler)
     private val _device : BluetoothDevice = _btAdapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
-    private lateinit var _connect : MyBluetoothService.ConnectThread
-    private lateinit var _connected : MyBluetoothService.ConnectedThread
+    private val _bTService : MyBluetoothService = MyBluetoothService(_handler, _device)
+
 
 
     class myHandler(private val ref: WeakReference<MainActivity>) : Handler() {
@@ -54,44 +53,21 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG,preferences!!.getString("UUID","error"))
 
         buttonConnect.setOnClickListener {
-            try {
-                _connect = _bTService.ConnectThread(_device)
-                _connect.start()
-                Thread.sleep(500)
-                _connected = _bTService.ConnectedThread()
-                _connected.start()
-            }
-            catch (e : Exception) {
-                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-                Log.e(TAG,e.message)
-            }
+            _bTService.connect()
         }
 
         buttonDisconnect.setOnClickListener {
-            try {
-                _bTService.ConnectThread(_device).cancel()
-            }
-            catch (e : Exception) {
-                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-                Log.e(TAG,e.message)
-            }
+            _bTService.disconnect()
         }
 
         buttonWrite.setOnClickListener {
-            try {
-                _bTService.ConnectedThread().write(("GET").toByteArray())
-            }
-            catch (e : Exception) {
-                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-                Log.e(TAG,e.message)
-            }
+            _bTService.write("GET")
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        _connected.cancel()
-        _connect.cancel()
+        _bTService.disconnect()
     }
 
     private fun setPrefs() {

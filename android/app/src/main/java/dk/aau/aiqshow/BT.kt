@@ -9,6 +9,7 @@ import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 
 private const val TAG = "MY_APP_DEBUG_TAG"
 
@@ -21,11 +22,12 @@ const val MESSAGE_TOAST: Int = 2
 
 class MyBluetoothService(
     // handler that gets info from Bluetooth service
-    private val handler: Handler) {
+    private val handler: Handler,
+    private val device: BluetoothDevice) {
 
     private lateinit var succ: BluetoothSocket
 
-    inner class ConnectedThread : Thread() {
+    private inner class ConnectedThread : Thread() {
 
         private val mmInStream: InputStream = succ.inputStream
         private val mmOutStream: OutputStream = succ.outputStream
@@ -85,7 +87,7 @@ class MyBluetoothService(
         }
     }
 
-    inner class ConnectThread(device: BluetoothDevice) : Thread() {
+    private inner class ConnectThread : Thread() {
 
         /*private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
             device.createRfcommSocketToServiceRecord(UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"))
@@ -95,7 +97,7 @@ class MyBluetoothService(
                 .invoke(device,1) as BluetoothSocket
 
 
-        public override fun run() {
+        override fun run() {
             // Cancel discovery because it otherwise slows down the connection.
             succ = mmSocket as BluetoothSocket
 
@@ -124,6 +126,36 @@ class MyBluetoothService(
             }
         }
     }
-    fun stuff() {
+
+    fun connect() {
+        try {
+            ConnectThread().start()
+            Thread.sleep(500)
+            ConnectedThread().start()
+        }
+        catch (e : Exception) {
+            Log.e(TAG,e.message)
+        }
+    }
+
+    fun write(str: String) {
+        try {
+            ConnectedThread().write(str.toByteArray())
+        }
+        catch (e : Exception) {
+            Log.e(TAG,e.message)
+        }
+
+    }
+
+    fun disconnect() {
+        try {
+            ConnectedThread().cancel()
+            Thread.sleep(200)
+            ConnectThread().cancel()
+        }
+        catch (e : Exception) {
+            Log.e(TAG,e.message)
+        }
     }
 }
