@@ -8,30 +8,40 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
+import java.lang.ref.WeakReference
 import java.util.*
 
 
-private val TAG = "MAIN_ACTIVITY"
+private const val TAG = "MAIN_ACTIVITY_DEBUG"
 var preferences : SharedPreferences? = null
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var btadapter : BluetoothAdapter
-    lateinit var BTService : MyBluetoothService
-    lateinit var device : BluetoothDevice
+    private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val _weakRef = WeakReference(this)
+    private val _handler = myHandler(_weakRef)
+    private val _bTService : MyBluetoothService = MyBluetoothService(_handler)
+    private val _device : BluetoothDevice = _btAdapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
+    private lateinit var _connect : MyBluetoothService.ConnectThread
+    private lateinit var _connected : MyBluetoothService.ConnectedThread
 
-    val handler = object : Handler() {
+
+    class myHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
-            Toast.makeText(this@MainActivity,ByteArrayToString(msg.obj as ByteArray, msg.arg1),Toast.LENGTH_SHORT).show()
-            text.text = ByteArrayToString(msg.obj as ByteArray, msg.arg1)
-            if (msg.arg1 > 0)
-                Log.i(TAG,ByteArrayToString(msg.obj as ByteArray, msg.arg1))
-            else
-                Log.i(TAG,"SENT MESSAGE")
+            val array = msg.obj as ByteArray
+            val size = msg.arg1
+
+            ref.get()!!.text.text = ByteArrayToString(array, size)
+            when {
+                msg.what == 0 -> Log.i("$TAG READ",ByteArrayToString(array, size))
+                msg.what == 1 -> Log.i("$TAG WRITE",ByteArrayToString(array, size))
+                msg.what == 2 -> Log.i("$TAG TOAST",ByteArrayToString(array, size))
+                else -> Log.i(TAG, "ERROR")
+            }
+
         }
     }
 
@@ -41,45 +51,47 @@ class MainActivity : AppCompatActivity() {
         preferences = this.getSharedPreferences("prefs",0)
 
         setPrefs()
-        btadapter = BluetoothAdapter.getDefaultAdapter()
-        BTService = MyBluetoothService(handler)
-        device = btadapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
-
         Log.d(TAG,preferences!!.getString("UUID","error"))
 
+        buttonConnect.setOnClickListener {
+            try {
+                _connect = _bTService.ConnectThread(_device)
+                _connect.start()
+                Thread.sleep(500)
+                _connected = _bTService.ConnectedThread()
+                _connected.start()
+            }
+            catch (e : Exception) {
+                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+                Log.e(TAG,e.message)
+            }
+        }
 
+        buttonDisconnect.setOnClickListener {
+            try {
+                _bTService.ConnectThread(_device).cancel()
+            }
+            catch (e : Exception) {
+                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+                Log.e(TAG,e.message)
+            }
+        }
+
+        buttonWrite.setOnClickListener {
+            try {
+                _bTService.ConnectedThread().write(("GET").toByteArray())
+            }
+            catch (e : Exception) {
+                Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
+                Log.e(TAG,e.message)
+            }
+        }
     }
 
-    fun buttonConnect(view: View) {
-        try {
-            BTService.ConnectThread(device).start()
-            Thread.sleep(500)
-            BTService.ConnectedThread().start()
-        }
-        catch (e : Exception) {
-            Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-            Log.e(TAG,e.message)
-        }
-    }
-
-    fun buttonDisConnect(view: View) {
-        try {
-            BTService.ConnectThread(device).cancel()
-        }
-        catch (e : Exception) {
-            Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-            Log.e(TAG,e.message)
-        }
-    }
-
-    fun buttonWrite(view: View) {
-        try {
-            BTService.ConnectedThread().write(("GET").toByteArray())
-        }
-        catch (e : Exception) {
-            Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()
-            Log.e(TAG,e.message)
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        _connected.cancel()
+        _connect.cancel()
     }
 
     private fun setPrefs() {
@@ -87,9 +99,5 @@ class MainActivity : AppCompatActivity() {
             val uuid = UUID.randomUUID()
             preferences!!.edit().putString("UUID",uuid.toString()).apply()
         }
-    }
-
-    private fun ByteArrayToString(ba : ByteArray, size: Int) : String {
-        return ba.slice(0 until size).toByteArray().toString(Charsets.UTF_8)
     }
 }
