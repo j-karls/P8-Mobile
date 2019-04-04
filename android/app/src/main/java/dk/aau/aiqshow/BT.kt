@@ -1,6 +1,5 @@
 package dk.aau.aiqshow
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
@@ -10,8 +9,9 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
+import java.util.*
 
-private const val TAG = "MY_APP_DEBUG_TAG"
+private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
 
 // Defines several constants used when transmitting messages between the
 // service and the UI.
@@ -23,14 +23,22 @@ const val MESSAGE_TOAST: Int = 2
 class MyBluetoothService(
     // handler that gets info from Bluetooth service
     private val handler: Handler,
-    private val device: BluetoothDevice) {
+    device: BluetoothDevice) {
 
-    private lateinit var succ: BluetoothSocket
+    private val mmSocket: BluetoothSocket =
+        try {Log.i(TAG,device.name)
+            device.createRfcommSocketToServiceRecord(UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"))}
+        catch (e: Exception) { Log.e(TAG,e.toString())
+            device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
+                .invoke(device,1) as BluetoothSocket }
+        catch (e: Exception) {Log.e(TAG, e.toString()); throw Exception("No bluetooth connection could be created")}
+    //finally {Log.e(TAG,"could not open socket, backup succeeded")}
 
-    private inner class ConnectedThread : Thread() {
 
-        private val mmInStream: InputStream = succ.inputStream
-        private val mmOutStream: OutputStream = succ.outputStream
+    private inner class CommThread : Thread() {
+
+        private val mmInStream: InputStream = mmSocket.inputStream
+        private val mmOutStream: OutputStream = mmSocket.outputStream
         private val mmBuffer: ByteArray = ByteArray(1024) // mmBuffer store for the stream
 
         override fun run() {
@@ -80,7 +88,7 @@ class MyBluetoothService(
         // Call this method from the main activity to shut down the connection.
         fun cancel() {
             try {
-                succ.close()
+                mmSocket.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
@@ -88,39 +96,25 @@ class MyBluetoothService(
     }
 
     private inner class ConnectThread : Thread() {
-
-        /*private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            device.createRfcommSocketToServiceRecord(UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"))
-        }*/
-
-        private val mmSocket : BluetoothSocket? = device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
-                .invoke(device,1) as BluetoothSocket
-
-
         override fun run() {
-            // Cancel discovery because it otherwise slows down the connection.
-            succ = mmSocket as BluetoothSocket
+            //TODO: Discovery
+            //BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
 
-            BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
-
-
-
-
-            succ.use { socket ->
+            mmSocket.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
                 socket.connect()
 
                 // The connection attempt succeeded. Perform work associated with
                 // the connection in a separate thread.
-                this@MyBluetoothService.ConnectedThread().run()
+                this@MyBluetoothService.CommThread().run()
             }
         }
 
         // Closes the client socket and causes the thread to finish.
         fun cancel() {
             try {
-                succ.close()
+                mmSocket.close()
             } catch (e: IOException) {
                 Log.e(dk.aau.aiqshow.TAG, "Could not close the client socket", e)
             }
@@ -129,28 +123,21 @@ class MyBluetoothService(
 
     fun connect() {
         try {
+            if (mmSocket.isConnected) {
             ConnectThread().start()
-            Thread.sleep(500)
-            ConnectedThread().start()
+            //Thread.sleep(500)
+            CommThread().start() }
+            else
+                throw Exception("Socket cannot be connected")
         }
         catch (e : Exception) {
             Log.e(TAG,e.message)
         }
-    }
-
-    fun write(str: String) {
-        try {
-            ConnectedThread().write(str.toByteArray())
-        }
-        catch (e : Exception) {
-            Log.e(TAG,e.message)
-        }
-
     }
 
     fun disconnect() {
         try {
-            ConnectedThread().cancel()
+            CommThread().cancel()
             Thread.sleep(200)
             ConnectThread().cancel()
         }
@@ -158,4 +145,19 @@ class MyBluetoothService(
             Log.e(TAG,e.message)
         }
     }
+
+    private fun write(str: String) {
+        try {
+            CommThread().write(str.toByteArray())
+        }
+        catch (e : Exception) {
+            Log.e(TAG,e.message)
+        }
+
+    }
+
+    fun getCO() {
+        write("GET")
+    }
+
 }

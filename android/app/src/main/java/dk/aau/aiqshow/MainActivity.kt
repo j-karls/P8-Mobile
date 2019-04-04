@@ -8,9 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.Exception
 import java.lang.ref.WeakReference
 import java.util.*
 
@@ -22,13 +20,13 @@ class MainActivity : AppCompatActivity() {
 
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _weakRef = WeakReference(this)
-    private val _handler = myHandler(_weakRef)
+    private val _handler = MyHandler(_weakRef)
     private val _device : BluetoothDevice = _btAdapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
     private val _bTService : MyBluetoothService = MyBluetoothService(_handler, _device)
 
 
 
-    class myHandler(private val ref: WeakReference<MainActivity>) : Handler() {
+    private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
             val array = msg.obj as ByteArray
             val size = msg.arg1
@@ -40,7 +38,6 @@ class MainActivity : AppCompatActivity() {
                 msg.what == 2 -> Log.i("$TAG TOAST",ByteArrayToString(array, size))
                 else -> Log.i(TAG, "ERROR")
             }
-
         }
     }
 
@@ -61,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
-            _bTService.write("GET")
+            _bTService.getCO()
         }
     }
 
