@@ -18,6 +18,7 @@ private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
 const val MESSAGE_READ: Int = 0
 const val MESSAGE_WRITE: Int = 1
 const val MESSAGE_TOAST: Int = 2
+const val MESSAGE_CONNECT: Int = 3
 // ... (Add other message types here as needed.)
 
 class MyBluetoothService(
@@ -32,7 +33,6 @@ class MyBluetoothService(
             device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
         catch (e: Exception) {Log.e(TAG, e.toString()); throw Exception("No bluetooth connection could be created")}
-    //finally {Log.e(TAG,"could not open socket, backup succeeded")}
 
 
     private inner class CommThread : Thread() {
@@ -96,19 +96,22 @@ class MyBluetoothService(
     }
 
     private inner class ConnectThread : Thread() {
+
         override fun run() {
             //TODO: Discovery
             //BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
 
-            mmSocket.use { socket ->
+            mmSocket.connect()
+
+            /*mmSocket.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
                 socket.connect()
 
                 // The connection attempt succeeded. Perform work associated with
                 // the connection in a separate thread.
-                this@MyBluetoothService.CommThread().run()
-            }
+                //this@MyBluetoothService.CommThread().run()
+            }*/
         }
 
         // Closes the client socket and causes the thread to finish.
@@ -124,14 +127,16 @@ class MyBluetoothService(
     fun connect() {
         try {
             if (mmSocket.isConnected) {
-            ConnectThread().start()
-            //Thread.sleep(500)
-            CommThread().start() }
+            ConnectThread().start()}
             else
                 throw Exception("Socket cannot be connected")
+            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
+            CommThread().start()
+
         }
         catch (e : Exception) {
             Log.e(TAG,e.message)
+            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Could not connect").sendToTarget()
         }
     }
 
@@ -157,7 +162,7 @@ class MyBluetoothService(
     }
 
     fun getCO() {
-        write("GET")
+        write("GET CO 100")
     }
 
 }

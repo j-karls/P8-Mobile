@@ -28,14 +28,17 @@ class MainActivity : AppCompatActivity() {
 
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
-            val array = msg.obj as ByteArray
-            val size = msg.arg1
+            val thing = if (msg.what != 3)
+                byteArrayToString(msg.obj as ByteArray,msg.arg1)
+            else msg.obj as String
 
-            ref.get()!!.text.text = ByteArrayToString(array, size)
+
+            ref.get()!!.text.text = thing
             when {
-                msg.what == 0 -> Log.i("$TAG READ",ByteArrayToString(array, size))
-                msg.what == 1 -> Log.i("$TAG WRITE",ByteArrayToString(array, size))
-                msg.what == 2 -> Log.i("$TAG TOAST",ByteArrayToString(array, size))
+                msg.what == 0 -> Log.i("$TAG READ",thing)
+                msg.what == 1 -> Log.i("$TAG WRITE",thing)
+                msg.what == 2 -> Log.i("$TAG TOAST",thing)
+                msg.what == 3 -> Log.i("$TAG CONNECTED", thing)
                 else -> Log.i(TAG, "ERROR")
             }
         }
