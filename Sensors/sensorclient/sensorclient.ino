@@ -1,176 +1,130 @@
 
-class Sensor
-{
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Classes
+
+class Sensor {
+private: 
+  virtual double getRawValue() = 0; // get raw measurement directly from sensor at the current time
 public:
-    Sensor() {}
-    virtual void calibrate() = 0;     // Perform one-time calibration of sensor, likely at startup time
-    char name[];
-    // virtual int period;        // The period of the sensor in milliseconds: i.e. the time between new sensor measurements
-    // virtual double getValue() = 0;     // Get the corrected (or aggregated) value of the sensor. The value ought to be updated each period. 
+  Sensor() {}
+  virtual void calibrate() = 0; // perform one-time calibration of sensor, likely at startup time
+  char name[];
+  virtual double getValue() = 0; // get some sort of aggregated or corrected value
 
-    virtual double getRawValue() = 0;   // Get raw measurement directly from sensor at the current time
+  // State machine
+  virtual bool needsControl(unsigned long currentTime) = 0;
+  virtual bool canGetNewValue(unsigned long currentTime) = 0;
+  virtual void manageState(unsigned long currentTime) = 0;
 };
 
-// #import "sensor.ino"
+class SensorCO : public Sensor {
+  private:
+    int _pinData;
+    int _pinPower;
+    int _pinDigital;
 
-// constructor with two pins for input output, and two for heating? or one?
+    double getRawValue() {
+      return analogRead(_pinData);
+    }
+  public:
+    char name[3] = {'C', 'O', '\0'};
+    unsigned long heatPeriod = 60;
+    unsigned long coolPeriod = 90;
+    void calibrate() { /* no need to calibrate anything in particular */ } 
 
-class SensorCO : public Sensor
-{
-    public:
-        SensorCO(int pin_data, int pin_power, int pin_digital) 
-        { 
-            _pinData = pin_data; // The analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
-            _pinPower = pin_power;
-            _pinDigital = pin_digital;
+    SensorCO(int pinData, int pinDigital, int pinPower) { 
+        _pinData = pinData; // the analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
+        _pinDigital = pinDigital; 
+        _pinPower = pinPower; // the digital pin that the sensor draws power (PWM) from
 
-            pinMode(_pinData, INPUT); 
-            pinMode(_pinPower, OUTPUT);
-            pinMode(_pinDigital, INPUT);
-        }
+        pinMode(_pinData, INPUT); 
+        pinMode(_pinPower, OUTPUT);
+        pinMode(_pinDigital, INPUT);
+    }
+    double getDigitalValue() {
+      return digitalRead(_pinDigital);
+    }
+    void cool() {     
+      digitalWrite(_pinPower, LOW); // set to 1.4V
+    }
+    void heat() {
+      digitalWrite(_pinPower, HIGH); // set to 5V
+    }
+};
+
+class Diode {
+  private: 
+    int _pin;
     
-        // char name[3] = "CO";
-        char name[3] = {'C', 'O', '\0'};
-        // int period = 90;
-    
-        void calibrate() { /*No need to calibrate anything in particular*/ } 
-
-      // if time >= 90 (measurementPeriod + heatingPeriod)
-      // return aggregate and reset it
-      // if time >= 60 (heatingPeriod)
-      // shut off heating, if not already shut off
-      // add getRawValue() to aggregate
-      // if time < heatingPeriod 
-      // return void
-      /////// REEEEEEEEEEE FIX
-
-    double getDigitalValue()
-    {
-        return digitalRead(_pinDigital);
+  public:
+    Diode(int pin) {
+      _pin = pin;
+      pinMode(_pin, OUTPUT);
     }
-    
-    double getRawValue()
-    {
-        return analogRead(_pinData);
+    void turnOn() {
+      digitalWrite(_pin, HIGH);
     }
-
-    void cool()
-    {     
-        digitalWrite(_pinPower, LOW); // Set to 1.4V
+    void turnOff() {
+      digitalWrite(_pin, LOW);
     }
-
-    void heat() 
-    {
-        digitalWrite(_pinPower, HIGH); // Set to 5V
+    void toggleState() {
+      digitalWrite(_pin, !digitalRead(_pin));
     }
-
-    private:
-        int _pinData;
-        int _pinPower;
-        int _pinDigital;
-
-// For god's sake,figure out if you're using camelCase or shit_case to  write your code
 };
 
 
-SensorCO sensor_co = SensorCO(A3, 3, 8);
-// SensorThermalComfort sensor_tc = SensorThermalComfort(A7, A8);
-// SensorAirQuality sensor_aq = SensorAirQuality(A9, A10);
-// Sensor[3] sensors = {sensor_co, sensor_tc, sensor_aq};
-
-void setup()
-{
-    Serial.begin(9600); // initialize serial connection with a data rate of 9600 bits per second
-    
-    // for (int i = 0; i < sensors.size(); ++i)
-    // {
-    //    sensors[i].calibrate();
-    // }
-
-    pinMode(13, OUTPUT);
-    //pinMode(3, OUTPUT);
-    // sensor_co.heat();
-}
-
-// unsigned long next_time;
-
-// Should I maybe figure out some way to do concurrency?
-// That way I could abstract the get_value part of the co sensor by having it count the seconds by itself, and then by itself deciding whether to heat up, agreggate value or send the result.
-// Then I could have a cycle time of 90 seconds, where it opens a sensor_co.getValue "thread" 
-// So that would mean that this loop function just switches between the different "threads"
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Methods
 
 void delaySec(int sec)
 {
-    if(sec == 0) return;
-    delay(1000);
-    Serial.print("Waiting... ");
-    Serial.println(sec);
-    delaySec(sec - 1);
+  if(sec == 0) return;
+  delay(1000);
+  Serial.print("Waiting... ");
+  Serial.println(sec);
+  delaySec(sec - 1);
 }
 
-void turnOnLight(int pin)
+void taskA(SensorCO sensor) {
+  int co_ppm = sensor.getRawValue();
+  Serial.println(co_ppm);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Program flow
+
+Diode diode = Diode(13);
+SensorCO sensorCO = SensorCO(A3, 8, 3);
+// INSERT OTHER SENSORS
+
+unsigned long startTime;
+unsigned long currentTime;
+
+void setup()
 {
-    digitalWrite(pin, HIGH);
+  Serial.begin(9600); // initialize serial connection with a data rate of 9600 bits per second
+  startTime = millis(); // get number of milliseconds since the program started
+  sensorCO.calibrate();
 }
-
-void turnOffLight(int pin)
-{
-    digitalWrite(pin, LOW);
-}
-
 
 void loop()
 {
-    // --------------- CO Sensor Get Value Cycle
-    
-    //sensor_co.heat();
-    //turnOnLight(13);
-    //delaySec(10);
-    //delaySec(60);
-    //delaySec(5);
-    //turnOffLight(13);
-    //sensor_co.cool();
-    //delaySec(5);
-    //delaySec(27);
-    //delaySec(2);
-    //sensor_co.heat();
-    //delaySec(5);
-    sensor_co.cool();
-    int co_ppm = sensor_co.getRawValue();
-    Serial.println(co_ppm);
-    
-    /*int limit = sensor_co.getDigitalValue();
-    if(limit == HIGH) {
-        turnOnLight(13);
-    }
-    else {
-        turnOffLight(13);
-    }*/
-    
-    
-//    delaySec(2);
+  currentTime = millis(); 
 
-///// FIND OUT HOW TO OMREGNE VOLT ANALOG DATA TO PPM
+  if (currentTime - startTime >= sensorCO.heatPeriod) {
+    taskA(sensorCO);
+    startTime = currentTime; 
+  }
 
-   
-//    Serial.println(sensor_co.getRawValue());
-//    Serial.println(sensor_co.getDigitalValue());
+  // DO SOMETHING WITH STATE MACHINE? SensorCO heat state, then check for 60 seconds? If cool state, then check for 90 seconds?
 
-    // Manually implements cyclic executive scheduling of sensor measurements
-    // waitForTimer();
-    // task_a(); task_b(); task_c();
-    // co-sensor is to be measured in periods of 90 seconds, the first 60 being used for heating up, the measurement taking place 28 seconds after that. 
 
-    // waitForTimer();
-    // task_a(); task_b();
+  if(sensorCO.canGetNewValue(currentTime))
+    Serial.write(sensorCO.name);
+    Serial.write(sensorCO.getValue());
 
-    // for (int i = 0; i < sensors.size(); ++i)
-    // {
-    //    if (sensors[i].period > next_time)
-    //    {
-    //        char[] str = sensors[i].getValue();
-    //        str += sensors[i].name;
-    //        Serial.println(str);
-    //    }
-    // }
+  if(sensorCO.needsControl(currentTime))
+    sensorCO.manageState();
+  if(sensorThermalComfort.needsControl(currentTime))
+    sensorThermalComfort.manageState();
 }
