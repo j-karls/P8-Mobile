@@ -3,33 +3,56 @@
 // Classes
 
 class Sensor {
-private: 
+protected: 
+  unsigned long _cycleStartTime; // when we started on the period/cycle of the sensor
   virtual double getRawValue() = 0; // get raw measurement directly from sensor at the current time
 public:
+  char name[];
+  unsigned long cycleTime; // time it takes to finish one period
   Sensor() {}
   virtual void calibrate() = 0; // perform one-time calibration of sensor, likely at startup time
-  char name[];
   virtual double getValue() = 0; // get some sort of aggregated or corrected value
 
   // State machine
-  virtual bool needsControl(unsigned long currentTime) = 0;
-  virtual bool canGetNewValue(unsigned long currentTime) = 0;
+  bool canGetNewValue;
   virtual void manageState(unsigned long currentTime) = 0;
 };
 
 class SensorCO : public Sensor {
-  private:
+  protected:
     int _pinData;
     int _pinPower;
     int _pinDigital;
 
-    double getRawValue() {
-      return analogRead(_pinData);
+    bool _isHeating = false;
+    unsigned long _heatPeriod = 6000;
+    unsigned long _coolPeriod = 9000; //change it back REEEEEEEEEEEEEEEEEE
+    int _numMeasurements = 0;
+    double _aggregatedValue = 0;
+    double _ro = 1.906329; // a constant that is determined based on sensor results in clean air
+    double _funcConstantA = 101.9084; // a constant that is determined by finding the regression of the curve describing sensor output in the datasheet 
+    double _funcConstantB = 1.5105;  // another constant from the same regression
+
+
+    void startNewCycle(unsigned long newCycleStartTime) {
+      _cycleStartTime = newCycleStartTime;
+      heat();
+    }
+    void performAggregation(double newValue) {
+      _aggregatedValue += newValue;
+      _numMeasurements++;
+    }
+    double convertToPPM(double value) {
+      double voltage = value / 1024 * 5;
+      double rs = (5 - voltage) / voltage;
+      double ratio = rs / _ro;
+      // Serial.println(100 * pow(1.53196, ratio));
+      return 100 * pow(1.53196, ratio);
+
+      // PPM conversion doesn't make any kind of sense. Simplify it, fix it, or whatever... 
     }
   public:
-    char name[3] = {'C', 'O', '\0'};
-    unsigned long heatPeriod = 60;
-    unsigned long coolPeriod = 90;
+    String name = String("CO");
     void calibrate() { /* no need to calibrate anything in particular */ } 
 
     SensorCO(int pinData, int pinDigital, int pinPower) { 
@@ -40,15 +63,45 @@ class SensorCO : public Sensor {
         pinMode(_pinData, INPUT); 
         pinMode(_pinPower, OUTPUT);
         pinMode(_pinDigital, INPUT);
+
+        canGetNewValue = false;
+        cycleTime = _heatPeriod + _coolPeriod;
+        _cycleStartTime = 0;
+    }
+    double getRawValue() {
+      return analogRead(_pinData);
     }
     double getDigitalValue() {
       return digitalRead(_pinDigital);
     }
     void cool() {     
       digitalWrite(_pinPower, LOW); // set to 1.4V
+      _isHeating = false;
     }
     void heat() {
       digitalWrite(_pinPower, HIGH); // set to 5V
+      _isHeating = true;
+    }
+    void manageState(unsigned long currentTime) {
+      if (_cycleStartTime == 0) { // if we have not yet started a cycle
+        startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
+      }
+      unsigned long cycleProgress = currentTime - _cycleStartTime;
+
+      if (cycleProgress >= cycleTime) { // if we're done with a measurement cycle
+        canGetNewValue = true;
+        startNewCycle(currentTime);
+      }
+      else if (cycleProgress >= _heatPeriod && _isHeating) { // switch state to cooling
+        cool();
+      }
+      else { // if we're in the cooling state
+        performAggregation(convertToPPM(getRawValue()));
+      }
+    }
+    double getValue() {
+      canGetNewValue = false;
+      return _aggregatedValue / _numMeasurements; // return average
     }
 };
 
@@ -85,10 +138,6 @@ void delaySec(int sec)
   delaySec(sec - 1);
 }
 
-void taskA(SensorCO sensor) {
-  int co_ppm = sensor.getRawValue();
-  Serial.println(co_ppm);
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Program flow
@@ -109,22 +158,17 @@ void setup()
 
 void loop()
 {
+  delay(1000);
+  
   currentTime = millis(); 
 
-  if (currentTime - startTime >= sensorCO.heatPeriod) {
-    taskA(sensorCO);
-    startTime = currentTime; 
+  // Get new value
+  if (sensorCO.canGetNewValue) {
+    Serial.println(currentTime);
+    Serial.println(String(sensorCO.name + String('|') + String(sensorCO.getValue(), 4)));
+    Serial.println(sensorCO.getRawValue());
   }
-
-  // DO SOMETHING WITH STATE MACHINE? SensorCO heat state, then check for 60 seconds? If cool state, then check for 90 seconds?
-
-
-  if(sensorCO.canGetNewValue(currentTime))
-    Serial.write(sensorCO.name);
-    Serial.write(sensorCO.getValue());
-
-  if(sensorCO.needsControl(currentTime))
-    sensorCO.manageState();
-  if(sensorThermalComfort.needsControl(currentTime))
-    sensorThermalComfort.manageState();
+  
+  // Manage state
+  sensorCO.manageState(currentTime);
 }
