@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
+import android.support.constraint.Guideline
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
@@ -132,11 +133,9 @@ class MyBluetoothService(
                 throw Exception("Socket cannot be connected")
             handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
             CommThread().start()
-
         }
         catch (e : Exception) {
             Log.e(TAG,e.message)
-            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Could not connect").sendToTarget()
         }
     }
 
@@ -161,8 +160,20 @@ class MyBluetoothService(
 
     }
 
-    fun getCO() {
-        write("GET CO 100")
+    fun GET(str: String) {
+        write("GET $str")
+    }
+
+    fun GET_time(type: String, from: Long, to: Long) {
+        write("GET $type $from to $to")
+    }
+
+    fun SET(str: String) {
+        write("SET $str")
+    }
+
+    fun SET_Guidelines(guideline: String) {
+        write("SET guideline $guideline")
     }
 
 }

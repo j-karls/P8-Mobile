@@ -10,6 +10,7 @@ import android.os.Message
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -61,7 +62,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
-            _bTService.getCO()
+            val time = System.currentTimeMillis() / 1000
+            _bTService.GET_time("CO",time - 300,time)
         }
     }
 
