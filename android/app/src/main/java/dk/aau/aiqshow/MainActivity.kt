@@ -8,9 +8,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
+import dk.aau.iaqlibrary.MyBluetoothService
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
-import java.time.LocalDateTime
 import java.util.*
 
 

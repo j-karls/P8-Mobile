@@ -1,10 +1,9 @@
-package dk.aau.aiqshow
+package dk.aau.iaqlibrary
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
-import android.support.constraint.Guideline
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
@@ -120,7 +119,7 @@ class MyBluetoothService(
             try {
                 mmSocket.close()
             } catch (e: IOException) {
-                Log.e(dk.aau.aiqshow.TAG, "Could not close the client socket", e)
+                Log.e(TAG, "Could not close the client socket", e)
             }
         }
     }
