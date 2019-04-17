@@ -7,16 +7,16 @@ from threading import Thread
 
 files = ['dbmaintainer.py', 'BT/btserver.py', 'serialreader.py']
 
-for file in files
+def run(filename):
+	while True:
+		print("\nStarting " + filename)
+		p = Popen("python3 " + filename, shell=True)
+		p.wait()
+
+for file in files:
 	try:
 		t = Thread(target=run, args=(file,))
 		t.start()
 	except Exception as e:
 		print(e)
 		pass
-
-def run(filename):
-	while True:
-		print("\nStarting " + filename)
-		p = Popen("python3 " + filename, shell=True)
-		p.wait()
