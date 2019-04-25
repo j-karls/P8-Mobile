@@ -27,7 +27,7 @@ def maintainLongterm():
 	cursor.execute("SELECT * FROM longterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
 		diff = timedelta(entrytime) - timedelta(datetime.now())
 		diff = diff.total_seconds() // 3600
@@ -44,7 +44,7 @@ def maintainShortterm():
 	cursor.execute("SELECT * FROM shortterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
 		diff = timedelta(entrytime) - timedelta(datetime.now())
 		diff = diff.total_seconds() // 3600
