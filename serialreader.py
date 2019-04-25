@@ -30,15 +30,15 @@ def main():
 					print(port)
 					try:
 						t = Thread(target=reader, args=(port,))
-						t.start()
 						threads.append(t, port)
+						t.start()
 					except Exception as e:
 						pass
 
 		for t, port in threads:
-					if not t.isAlive():
-						print('removing port from portlist: ' + port)
-						ports.remove(port)
+			if not t.isAlive():
+				print('removing port from portlist: ' + port)
+				ports.remove(port)
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
