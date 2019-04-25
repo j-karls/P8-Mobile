@@ -18,7 +18,7 @@ bindings = [('CO', 'longterm'),
 def main():
 	print('Initializing serial reader...')
 	ports = findPorts()
-	if ports is not None:
+	if len(ports) > 0:
 		print('Found ports:')
 		for port in ports:
 			print(port)
@@ -28,7 +28,6 @@ def main():
 			except Exception as e:
 				print(e)
 				pass
-		print('Found ports: ', findPorts())
 	else:
 		print('No active ports found... trying again in 10 seconds')
 		time.sleep(10)
