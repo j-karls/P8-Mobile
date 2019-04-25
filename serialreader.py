@@ -34,13 +34,13 @@ def main():
 						threads.append(t, port)
 					except Exception as e:
 						pass
+
+				for t, port  in threads:
+					if not t.is_alive():
+						print('removing port from portlist: ' + port)
+						ports.remove(port)
 			else:
 				time.sleep(1)
-
-		for t, port  in threads:
-			if not t.is_alive():
-				print('removing port from portlist: ' + port)
-				ports.remove(port)
 				
 
 def findPorts():
