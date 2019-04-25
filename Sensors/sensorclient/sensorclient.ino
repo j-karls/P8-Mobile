@@ -13,7 +13,7 @@ public:
   virtual void calibrate() = 0; // perform one-time calibration of sensor, likely at startup time
   virtual double getValue() = 0; // get some sort of aggregated or corrected value
 
-  // State machine
+  // State machine functions
   bool canGetNewValue;
   virtual void manageState(unsigned long currentTime) = 0;
 };
@@ -29,9 +29,14 @@ class SensorCO : public Sensor {
     unsigned long _coolPeriod = 9000; //change it back REEEEEEEEEEEEEEEEEE
     int _numMeasurements = 0;
     double _aggregatedValue = 0;
-    double _ro = 1.906329; // a constant that is determined based on sensor results in clean air
-    double _funcConstantA = 101.9084; // a constant that is determined by finding the regression of the curve describing sensor output in the datasheet 
-    double _funcConstantB = 1.5105;  // another constant from the same regression
+
+    int _analogMeasurementFresh = 30;
+    double _rRatioFresh = 1; // r-ratio constant in fresh air as defined by datasheet
+    double _r0 = _rRatioFresh * (convertRS(_analogMeasurementFresh)); // a constant that is determined based on sensor results in clean air
+    double _funcConstantA = 18.5428; // a constant that is determined by finding the regression of the curve describing sensor output in the datasheet 
+    double _funcConstantB = -1.0519;  // another constant from the same regression
+    double _rl = 10000; // load resistance in Ohm
+    double _vc = 5; // control voltage in Volt
 
 
     void startNewCycle(unsigned long newCycleStartTime) {
@@ -42,14 +47,18 @@ class SensorCO : public Sensor {
       _aggregatedValue += newValue;
       _numMeasurements++;
     }
-    double convertToPPM(double value) {
-      double voltage = value / 1024 * 5;
-      double rs = (5 - voltage) / voltage;
-      double ratio = rs / _ro;
-      // Serial.println(100 * pow(1.53196, ratio));
-      return 100 * pow(1.53196, ratio);
-
-      // PPM conversion doesn't make any kind of sense. Simplify it, fix it, or whatever... 
+    double convertVRL(double analogValue) {
+      // analogValue is returned by the reading the sensor with analogRead and is a number between 0 and 1023
+      return analogValue / 1023; // voltage over the load resistor in Volt: basically, the "output" voltage of the circuit
+    }
+    double convertRS(double analogValue) {
+      double vrl = convertVRL(analogValue);
+      return ((_vc * _rl) / vrl) - _rl; // rs is resistance over the sensor in Ohm
+    }
+    double convertPPM(double analogValue) {
+      double rs = convertRS(analogValue);
+      double rRatio = rs / _r0; 
+      return pow((_funcConstantA / rRatio), (1 / _funcConstantB)); // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
     }
   public:
     String name = String("CO");
@@ -58,7 +67,7 @@ class SensorCO : public Sensor {
     SensorCO(int pinData, int pinDigital, int pinPower) { 
         _pinData = pinData; // the analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
         _pinDigital = pinDigital; 
-        _pinPower = pinPower; // the digital pin that the sensor draws power (PWM) from
+        _pinPower = pinPower; // the analog pin that the sensor draws power (PWM) from
 
         pinMode(_pinData, INPUT); 
         pinMode(_pinPower, OUTPUT);
@@ -75,11 +84,11 @@ class SensorCO : public Sensor {
       return digitalRead(_pinDigital);
     }
     void cool() {     
-      digitalWrite(_pinPower, LOW); // set to 1.4V
+      analogWrite(_pinPower, 71); // set to 1.4V PWM
       _isHeating = false;
     }
     void heat() {
-      digitalWrite(_pinPower, HIGH); // set to 5V
+      analogWrite(_pinPower, 255); // set to 5V PWM (always on)
       _isHeating = true;
     }
     void manageState(unsigned long currentTime) {
@@ -96,7 +105,7 @@ class SensorCO : public Sensor {
         cool();
       }
       else { // if we're in the cooling state
-        performAggregation(convertToPPM(getRawValue()));
+        performAggregation(convertPPM(getRawValue()));
       }
     }
     double getValue() {
@@ -143,7 +152,7 @@ void delaySec(int sec)
 // Program flow
 
 Diode diode = Diode(13);
-SensorCO sensorCO = SensorCO(A3, 8, 3);
+SensorCO sensorCO = SensorCO(A3, 8, A0);
 // INSERT OTHER SENSORS
 
 unsigned long startTime;
