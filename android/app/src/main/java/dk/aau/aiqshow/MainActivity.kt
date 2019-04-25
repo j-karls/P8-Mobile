@@ -11,6 +11,7 @@ import android.util.Log
 import dk.aau.iaqlibrary.MyBluetoothService
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -60,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
-            _bTService.GET_time("CO",Date((System.currentTimeMillis() / 1000 - 300)),Date(System.currentTimeMillis() / 1000))
+            _bTService.GET_time("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
         }
     }
 
