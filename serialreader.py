@@ -58,7 +58,6 @@ def reader(port):
 		ser.baudrate = 115200
 	except SerialException as e:
 			print('Device ' + port + ' disconnected!')
-			break
 
 	while(True):
 		try:
