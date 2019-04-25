@@ -18,8 +18,8 @@ bindings = [('CO', 'longterm'),
 def main():
 	print('Initializing serial reader...')
 	ports = findPorts()
-	print('Found ports:')
 	if ports is not None:
+		print('Found ports:')
 		for port in ports:
 			print(port)
 			try:
