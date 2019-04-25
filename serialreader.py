@@ -30,15 +30,15 @@ def main():
 					print(port)
 					try:
 						t = Thread(target=reader, args=(port,))
-						t.start()
 						threads.append(t, port)
+						t.start()
 					except Exception as e:
 						pass
 			else:
 				time.sleep(1)
 
 		for t, port  in threads:
-			if not t.isAlive():
+			if not t.is_alive():
 				ports.remove(port)
 				
 
