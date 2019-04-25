@@ -40,11 +40,14 @@ def main():
 		for t, port in threads:
 			if not t.is_alive():
 				print('REMOVING PORT: ' + port)
-				ports.remove(port)
+				try:
+					passports.remove(port)
+				except Exception as e:
+					pass
+					
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
-	ports = ports[:-1]
 	return ports
 
 #start on new thread
