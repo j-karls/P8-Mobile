@@ -19,7 +19,7 @@ def main():
 	print('Initializing serial reader...')
 	ports = findPorts()
 	print('Found ports:')
-	if ports not None:
+	if ports is not None:
 		for port in ports:
 			print(port)
 			try:
