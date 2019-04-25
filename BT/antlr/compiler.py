@@ -1,10 +1,10 @@
 import sys
 from antlr4 import *
-from LanguageLexer import LanguageLexer
-from LanguageParser import LanguageParser
+from antlr.LanguageLexer import LanguageLexer
+from antlr.LanguageParser import LanguageParser
 from antlr4.tree.Trees import Trees
 from antlr4.error.ErrorListener import ErrorListener
-from LanguageVisitor import LanguageVisitor
+from antlr.LanguageVisitor import LanguageVisitor
  
 def Compile(input):
 	lexer = LanguageLexer(InputStream(input))
