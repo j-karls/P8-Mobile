@@ -17,18 +17,21 @@ bindings = [('CO', 'longterm'),
 
 def main():
 	print('Initializing serial reader...')
+	ports = []
 	while True:
-		ports = findPorts()
-		if len(ports) > 0:
-			print('Found ports:')
-			for port in ports:
-				print(port + " is connected!")
-				try:
-					t = Thread(target=reader, args=(port,))
-					t.start()
-				except Exception as e:
-					print(e)
-					pass
+		for port in findPorts():
+			if port is not in ports:
+				ports.append(port)
+				
+				print('Connected ports:')
+				for port in ports:
+					print(port)
+					try:
+						t = Thread(target=reader, args=(port,))
+						t.start()
+					except Exception as e:
+						print(e)
+						pass
 		else:
 			time.sleep(5)
 
