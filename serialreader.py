@@ -39,6 +39,7 @@ def main():
 
 		for t, port  in threads:
 			if not t.is_alive():
+				print('removing port from portlist: ' + port)
 				ports.remove(port)
 				
 
