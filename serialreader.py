@@ -16,6 +16,8 @@ bindings = [('CO', 'longterm'),
 	('CO2', 'shortterm'),
 	('NO', 'shortterm')]
 
+global ports
+
 def main():
 	print('Initializing serial reader...')
 	ports = []
@@ -54,6 +56,7 @@ def reader(port):
 			line = ser.readline().decode('utf-8')
 		except SerialException as e:
 			print('Device ' + port + ' disconnected!')
+			ports.remove(port)
 			break
 		type, value = line.strip().split(',')
 		print('Recieved: ', type, ' : ', value)
