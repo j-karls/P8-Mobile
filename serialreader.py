@@ -91,10 +91,10 @@ def commitLong(type, value, dbconn):
 	dbconn.commit()
 
 def dbCreateConnection(db_file):
-	print('Connecting to local database...')
+	#print('Connecting to local database...')
 	try:
 		conn = sqlite3.connect(db_file)
-		print('Connection to database succesful!')
+		#print('Connection to database succesful!')
 		return conn
 	except Exception as e:
 		print(e)
