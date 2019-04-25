@@ -30,14 +30,16 @@ def main():
 					print(port)
 					try:
 						t = Thread(target=reader, args=(port,))
-						threads.append(t, port)
 						t.start()
+						threads.append([t, port])
 					except Exception as e:
 						pass
+			else:
+				time.sleep(1)
 
 		for t, port in threads:
-			if not t.isAlive():
-				print('removing port from portlist: ' + port)
+			if not t.is_alive():
+				print('REMOVING PORT: ' + port)
 				ports.remove(port)
 
 def findPorts():
