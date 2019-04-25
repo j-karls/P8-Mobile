@@ -37,7 +37,7 @@ def maintainLongterm():
 	db.close()
 
 def maintainShortterm():
-	db = createConnection('')
+	db = createConnection()
 	cursor = db.cursor()
 	cursor.execute("SELECT * FROM shortterm")
 	data = cursor.fetchall()
