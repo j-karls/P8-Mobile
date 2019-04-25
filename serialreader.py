@@ -25,7 +25,7 @@ def main():
 			if port not in ports:
 				ports.append(port)
 				
-				print('Connected ports:')
+				print('Device ' + port + ' connected!')
 				for port in ports:
 					print(port)
 					try:
@@ -34,12 +34,9 @@ def main():
 						threads.append([t, port])
 					except Exception as e:
 						pass
-			else:
-				time.sleep(1)
 
 		for t, port in threads:
 			if not t.is_alive():
-				print('REMOVING PORT: ' + port)
 				try:
 					ports.remove(port)
 					threads.remove([t, port])
