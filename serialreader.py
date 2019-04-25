@@ -42,7 +42,7 @@ def main():
 				print('REMOVING PORT: ' + port)
 				try:
 					ports.remove(port)
-					threads.remove(t, port)
+					threads.remove([t, port])
 				except Exception as e:
 					pass
 					
