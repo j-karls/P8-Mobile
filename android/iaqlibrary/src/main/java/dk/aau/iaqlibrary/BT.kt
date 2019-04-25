@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -151,12 +153,15 @@ class MyBluetoothService(
 
     private fun write(str: String) {
         try {
-            CommThread().write(str.toByteArray())
+            val lex = LanguageLexer(CharStreams.fromString(str))
+            if (LanguageParser(CommonTokenStream(lex)).buildParseTree)
+                CommThread().write(str.toByteArray())
+            else
+                throw Exception("Invalid String")
         }
         catch (e : Exception) {
             Log.e(TAG,e.message)
         }
-
     }
 
     fun GET(str: String) {
