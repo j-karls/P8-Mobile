@@ -53,6 +53,8 @@ def reader(port):
 	#Database connection
 	dbconn = dbCreateConnection(DBFILE)
 
+	print('in thread!')
+
 	#Serial comms connection
 	ser = serial.Serial(port)
 	ser.baudrate = 115200
