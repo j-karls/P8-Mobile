@@ -13,7 +13,7 @@ getexpr
 	: 'time' op=compare DATE	        #getTimeExpr
 	| 'time' DATE 'to' DATE         	#getTimeIntervalExpr
 	| 'value' op=compare NUM	        #getValueExpr
-    | 'alerts' op=assign ALTERTYPES     #getAlertExpr
+    | 'alerts' op=assign ALERTTYPE     #getAlertExpr
     | 'status'                      	#getStatusExpr
 	;
 
@@ -33,7 +33,7 @@ assign: EQ;
 
 andexpr: AND;
 
-ALERTYPES
+ALERTYPE
     : 'immediate'
     | 'predicted'
     ;

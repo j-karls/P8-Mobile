@@ -27,7 +27,7 @@ class Configuration(MAC):
 
 	# Load config from db
 	def load(self):
-		db = createConnection('')
+		db = createConnection()
 		cursor = db.cursor()
 		cursor.execute("SELECT macaddr FROM config WHERE macaddr = ?", (self.__mac,))
 		data = cursor.fetchone()
@@ -63,9 +63,9 @@ class Configuration(MAC):
 		self.save()
 
 	def createConnection():
-    try:
-        conn = sqlite3.connect('../config.db')
-        return conn
-    except Error as e:
-        print(e)
-    return None
+		try:
+			conn = sqlite3.connect('../config.db')
+			return conn
+		except Error as e:
+			print(e)
+		return None

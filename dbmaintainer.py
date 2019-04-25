@@ -15,7 +15,7 @@ agelim_long = 24*14 #hours, -> 14 days
 
 dbfile = '../database.db'
 
-def main(args):
+def main():
 	while True:
 		maintainShortterm()
 		maintainLongterm()
@@ -61,4 +61,4 @@ def createConnection():
 
 
 if __name__ == '__main__':
-	main(sys.argv)
+	main()

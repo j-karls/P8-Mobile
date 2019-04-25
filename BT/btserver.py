@@ -2,25 +2,64 @@ from bluetooth import *
 import os
 import sys
 from threading import Thread
+from config import Configuration
+from compiler import Compile
+import json
+import pickle
 
-def APIService(client, addr):
-	print("Ready for comms...")
+# Absolute path to sqlite3 database
+DBFILE = '/home/pi/Desktop/data.sqlite'
+
+def APIService(client, addr, cfg):
+	print("Ready for comms with client - MAC: " , addr)
 	while(True):
 		data = client.recv(1024)
 		str = data.decode('utf-8')
-		print('Received: ' + str)
-		if (str == 'GET'):
-			client.send("sending requested data...")
-		elif (str == 'PUT'):
-			client.send("You wish to give data?")
-		else:
-			client.send("Unknown command")
+		try:
+			sqlcommnand = Compile(str)
+			try:
+				# Execute generated sql command, against local db
+				result = readData(sqlcommnand)
+				# Convert result (rows) to a json object
+				jsonObj = json.dumps([dict(x) for x in result])
+				# Serialize object to string
+				#data = pickle.dumps(jsonObj)
+				# Send
+				client.send(jsonObj)
+			except Exception as e:
+				client.send('ERROR-2')
+		except Exception as e:
+			client.send('ERROR-1')
+
+
+		# The "SET" parts of a command is handled immidiately within the compiler
+
+
+		#print('Received: ' + str)
+		#if (str == 'GET'):
+		#	client.send("sending requested data...")
+		#elif (str == 'PUT'):
+		#	client.send("You wish to give data?")
+		#else:
+		#	client.send("Unknown command")
+
+def readData(sql):
+	try:
+		conn = sqlite3.connect(DBFILE)
+	except Exception as e:
+		print(e)
+	cur = dbconn.cursor()
+	cur.execute(sql)
+	data = cursor.fetchall()
+	return data
+
 
 def handleClient(client, addr):
 	#On new client, run API service, listening for commands
 	print('Connection from: ', addr)
 	try:
-		APIService(client, addr)
+		cfg = Configuration(addr)
+		APIService(client, addr, cfg)
 	except BluetoothError as e:
 		print(e)
 		pass
