@@ -17,20 +17,21 @@ bindings = [('CO', 'longterm'),
 
 def main():
 	print('Initializing serial reader...')
-	ports = findPorts()
-	if len(ports) > 0:
-		print('Found ports:')
-		for port in ports:
-			print(port)
-			try:
-				t = Thread(target=reader, args=(port,))
-				t.start()
-			except Exception as e:
-				print(e)
-				pass
-	else:
-		print('No active ports found... trying again in 10 seconds')
-		time.sleep(10)
+	while True:
+		ports = findPorts()
+		if len(ports) > 0:
+			print('Found ports:')
+			for port in ports:
+				print(port + " has been connected!")
+				try:
+					t = Thread(target=reader, args=(port,))
+					t.start()
+				except Exception as e:
+					print(e)
+					pass
+		else:
+			print('No active ports found... trying again in 10 seconds')
+			time.sleep(10)
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
