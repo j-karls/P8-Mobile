@@ -30,7 +30,7 @@ def main():
 						t = Thread(target=reader, args=(port,))
 						t.start()
 					except Exception as e:
-						print('Device ' + port + ' disconnected!')
+						print(e)
 						pass
 		else:
 			time.sleep(5)
@@ -45,8 +45,12 @@ def reader(port):
 	dbconn = dbCreateConnection(DBFILE)
 
 	#Serial comms connection
-	ser = serial.Serial(port)
-	ser.baudrate = 115200
+	try:
+		ser = serial.Serial(port)
+		ser.baudrate = 115200
+	except Exception as e:
+		print('Device ' + port + ' disconnected!')
+		pass
 
 	print('in reader thread..')
 	while(True):
