@@ -60,7 +60,7 @@ def reader(port):
 		try:
 			line = ser.readline().decode('utf-8')
 		except SerialException as e:
-			print('Device ' + port + ' disconnected!')
+			print(e)
 			break
 		type, value = line.strip().split(',')
 		print('Recieved: ', type, ' : ', value)
