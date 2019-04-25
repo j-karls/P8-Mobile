@@ -6,6 +6,7 @@ import glob
 import serial
 import sqlite3
 from threading import Thread
+from serial.serialutil import SerialException
 
 DBFILE = '/home/pi/Desktop/data.sqlite'
 DBCOMMITRATE = 10 #Secs
@@ -45,16 +46,15 @@ def reader(port):
 	dbconn = dbCreateConnection(DBFILE)
 
 	#Serial comms connection
-	try:
-		ser = serial.Serial(port)
-		ser.baudrate = 115200
-	except Exception as e:
-		print('Device ' + port + ' disconnected!')
-		pass
+	ser = serial.Serial(port)
+	ser.baudrate = 115200
 
-	print('in reader thread..')
 	while(True):
-		line = ser.readline().decode('utf-8')
+		try:
+			line = ser.readline().decode('utf-8')
+		except SerialException as e:
+			print('Device ' + port + ' disconnected!')
+			break
 		type, value = line.strip().split(',')
 		print('Recieved: ', type, ' : ', value)
 		handleData(type, value, dbconn)
