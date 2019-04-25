@@ -17,7 +17,7 @@ dbfile = '../data.sqlite'
 
 def main():
 	while True:
-		print('- Checking database for old data - ' + datetime.now())
+		print('- Checking database for old data - ' + str(datetime.now()))
 		maintainShortterm()
 		maintainLongterm()
 		t.sleep(60*5) # sleep for 5 minutes
