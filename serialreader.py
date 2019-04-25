@@ -43,7 +43,6 @@ def main():
 				except Exception as e:
 					pass
 					
-
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
 	return ports
@@ -52,8 +51,6 @@ def findPorts():
 def reader(port):
 	#Database connection
 	dbconn = dbCreateConnection(DBFILE)
-
-	print('in thread!')
 
 	#Serial comms connection
 	ser = serial.Serial(port)
