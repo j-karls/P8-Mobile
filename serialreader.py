@@ -41,7 +41,8 @@ def main():
 			if not t.is_alive():
 				print('REMOVING PORT: ' + port)
 				try:
-					passports.remove(port)
+					ports.remove(port)
+					threads.remove(t, port)
 				except Exception as e:
 					pass
 					
