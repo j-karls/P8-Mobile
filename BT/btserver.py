@@ -3,7 +3,7 @@ import os
 import sys
 from threading import Thread
 from config import Configuration
-from antlr/compiler import Compile
+from antlr.compiler import Compile
 import json
 import pickle
 
