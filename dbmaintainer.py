@@ -30,7 +30,7 @@ def maintainLongterm():
 		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
 		diff = (datetime.now() - entrytime).total_seconds()//3600
-		if diff.seconds/3600 > agelim_long:
+		if diff > agelim_long:
 			id = row[0]
 			cur = db.cursor()
 			cursor.execute('DELETE FROM longterm WHERE id=?', (id,))
