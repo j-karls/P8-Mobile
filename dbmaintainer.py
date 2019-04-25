@@ -13,7 +13,7 @@ from sqlite3 import Error
 agelim_short = 24 #hours, -> 1 day
 agelim_long = 24*14 #hours, -> 14 days
 
-dbfile = '../database.db'
+dbfile = '../data.sqlite'
 
 def main():
 	while True:
