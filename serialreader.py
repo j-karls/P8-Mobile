@@ -6,7 +6,6 @@ import glob
 import serial
 import sqlite3
 from threading import Thread
-from serial.serialutil import SerialException
 
 DBFILE = '/home/pi/Desktop/data.sqlite'
 DBCOMMITRATE = 10 #Secs
@@ -30,8 +29,8 @@ def main():
 					try:
 						t = Thread(target=reader, args=(port,))
 						t.start()
-					except SerialException as e:
-						print(e)
+					except Exception as e:
+						print('Device ' + port + ' disconnected!')
 						pass
 		else:
 			time.sleep(5)
