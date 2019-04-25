@@ -31,10 +31,10 @@ def main():
 						t = Thread(target=reader, args=(port,))
 						t.start()
 					except Exception as e:
+						ports.remove(port)
 						pass
-
-		else:
-			time.sleep(5)
+			else:
+				time.sleep(1)
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
