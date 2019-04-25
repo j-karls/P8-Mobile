@@ -44,6 +44,7 @@ def main():
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
+	ports = ports[:-1]
 	return ports
 
 #start on new thread
