@@ -30,8 +30,8 @@ def main():
 					print(port)
 					try:
 						t = Thread(target=reader, args=(port,))
-						threads.append(t, port)
 						t.start()
+						threads.append(t, port)
 					except Exception as e:
 						pass
 			else:
