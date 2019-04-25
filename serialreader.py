@@ -53,13 +53,18 @@ def reader(port):
 	dbconn = dbCreateConnection(DBFILE)
 
 	#Serial comms connection
-	ser = serial.Serial(port)
-	ser.baudrate = 115200
+	try:
+		ser = serial.Serial(port)
+		ser.baudrate = 115200
+	except SerialException as e:
+			print('Device ' + port + ' disconnected!')
+			break
 
 	while(True):
 		try:
 			line = ser.readline().decode('utf-8')
 		except SerialException as e:
+			print('Device ' + port + ' disconnected!')
 			break
 		type, value = line.strip().split(',')
 		print('Recieved: ', type, ' : ', value)
