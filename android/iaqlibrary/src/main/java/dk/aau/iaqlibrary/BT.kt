@@ -9,6 +9,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
+import java.nio.charset.Charset
 import java.util.*
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
@@ -53,11 +54,10 @@ class MyBluetoothService(
                     Log.d(TAG, "Input stream was disconnected", e)
                     break
                 }
-
                 // Send the obtained bytes to the UI activity.
                 val readMsg = handler.obtainMessage(
                     MESSAGE_READ, numBytes, -1,
-                    mmBuffer)
+                    mmBuffer.toString(Charset.defaultCharset()))
                 readMsg.sendToTarget()
             }
         }
@@ -81,7 +81,7 @@ class MyBluetoothService(
 
             // Share the sent message with the UI activity.
             val writtenMsg = handler.obtainMessage(
-                MESSAGE_WRITE, -1, -1, mmBuffer)
+                MESSAGE_WRITE, -1, -1, mmBuffer.toString(Charset.defaultCharset()))
             writtenMsg.sendToTarget()
         }
 

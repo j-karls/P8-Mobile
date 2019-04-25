@@ -25,13 +25,11 @@ class MainActivity : AppCompatActivity() {
     private val _device : BluetoothDevice = _btAdapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
     private val _bTService : MyBluetoothService = MyBluetoothService(_handler, _device)
 
-
-
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
-            val thing = if (msg.what != 3)
-                byteArrayToString(msg.obj as ByteArray,msg.arg1)
-            else msg.obj as String
+            val thing = if (msg.what != 2)
+                msg.obj as String
+            else msg.data.getString("toast")
 
 
             ref.get()!!.text.text = thing
