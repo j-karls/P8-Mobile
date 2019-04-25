@@ -60,8 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
-            val time = System.currentTimeMillis() / 1000
-            _bTService.GET_time("CO",time - 300,time)
+            _bTService.GET_time("CO",Date((System.currentTimeMillis() / 1000 - 300)),Date(System.currentTimeMillis() / 1000))
         }
     }
 

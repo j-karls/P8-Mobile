@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
+import android.text.format.DateFormat
 import android.util.Log
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
@@ -12,6 +13,9 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
 import java.nio.charset.Charset
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
@@ -22,6 +26,7 @@ const val MESSAGE_READ: Int = 0
 const val MESSAGE_WRITE: Int = 1
 const val MESSAGE_TOAST: Int = 2
 const val MESSAGE_CONNECT: Int = 3
+private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
 // ... (Add other message types here as needed.)
 
 class MyBluetoothService(
@@ -168,8 +173,11 @@ class MyBluetoothService(
         write("GET $str")
     }
 
-    fun GET_time(type: String, from: Long, to: Long) {
-        write("GET $type $from to $to")
+    fun GET_time(type: String, from: LocalDateTime, to: LocalDateTime) {
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:hh.mm.ss")
+        val fromDate = from.format(formatter)
+        val toDate = to.format(formatter)
+        GET("$type $fromDate to $toDate")
     }
 
     fun SET(str: String) {
@@ -177,7 +185,6 @@ class MyBluetoothService(
     }
 
     fun SET_Guidelines(guideline: String) {
-        write("SET guideline $guideline")
+        SET("guideline $guideline")
     }
-
 }

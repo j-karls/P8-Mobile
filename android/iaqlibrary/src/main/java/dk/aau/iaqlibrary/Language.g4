@@ -12,7 +12,7 @@ getexpr
 	: 'time' op=compare DATE	        #getTimeExpr
 	| 'time' DATE 'to' DATE         	#getTimeIntervalExpr
 	| 'value' op=compare NUM	        #getValueExpr
-    | 'alerts' op=assign ALERTYPES     #getAlertExpr
+    | 'alerts' op=assign ALERTTYPES     #getAlertExpr
     | 'status'                      	#getStatusExpr
 	;
 
@@ -32,7 +32,7 @@ assign: EQ;
 
 andexpr: AND;
 
-ALERTYPES
+ALERTTYPES
     : 'immediate'
     | 'predicted'
     ;
@@ -45,7 +45,7 @@ NUM
 INT	: [0-9];
 STRING: [a-zA-Z_0-9]+
 	| '*';
-DATE: INT+ DASH INT+ DASH INT INT INT INT (DASH INT PT INT)?;
+DATE: INT+ DASH INT+ DASH INT INT INT INT (COL TIME (PT TIME (PT TIME)?)?)?;
 EQ  : '=' ;
 LT	: '<' ;
 GT 	: '>' ;
@@ -55,6 +55,7 @@ DASH: '-' ;
 COL : ':' ;
 PT	: '.' ;
 AND	: '&';
+TIME: INT INT;
 
 WS
    : [ \r\n\t] -> skip

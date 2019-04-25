@@ -17,9 +17,9 @@ public class LanguageParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, ALERTYPES=9, 
+		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, ALERTTYPES=9, 
 		NUM=10, INT=11, STRING=12, DATE=13, EQ=14, LT=15, GT=16, LTEQ=17, GTEQ=18, 
-		DASH=19, COL=20, PT=21, AND=22, WS=23;
+		DASH=19, COL=20, PT=21, AND=22, TIME=23, WS=24;
 	public static final int
 		RULE_s = 0, RULE_cmd = 1, RULE_getexpr = 2, RULE_setexpr = 3, RULE_compare = 4, 
 		RULE_assign = 5, RULE_andexpr = 6;
@@ -40,9 +40,9 @@ public class LanguageParser extends Parser {
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, null, null, null, null, null, null, null, null, "ALERTYPES", "NUM", 
+			null, null, null, null, null, null, null, null, null, "ALERTTYPES", "NUM", 
 			"INT", "STRING", "DATE", "EQ", "LT", "GT", "LTEQ", "GTEQ", "DASH", "COL", 
-			"PT", "AND", "WS"
+			"PT", "AND", "TIME", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -330,7 +330,7 @@ public class LanguageParser extends Parser {
 	}
 	public static class GetAlertExprContext extends GetexprContext {
 		public AssignContext op;
-		public TerminalNode ALERTYPES() { return getToken(LanguageParser.ALERTYPES, 0); }
+		public TerminalNode ALERTTYPES() { return getToken(LanguageParser.ALERTTYPES, 0); }
 		public AssignContext assign() {
 			return getRuleContext(AssignContext.class,0);
 		}
@@ -441,7 +441,7 @@ public class LanguageParser extends Parser {
 				setState(59);
 				((GetAlertExprContext)_localctx).op = assign();
 				setState(60);
-				match(ALERTYPES);
+				match(ALERTTYPES);
 				}
 				break;
 			case 5:
@@ -644,7 +644,7 @@ public class LanguageParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\31N\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\32N\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\3\2\3\2\3\2\3\2\7\2\25\n\2"+
 		"\f\2\16\2\30\13\2\3\3\3\3\3\3\3\3\3\3\3\3\7\3 \n\3\f\3\16\3#\13\3\3\3"+
 		"\3\3\3\3\3\3\3\3\7\3*\n\3\f\3\16\3-\13\3\5\3/\n\3\3\4\3\4\3\4\3\4\3\4"+
