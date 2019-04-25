@@ -9,7 +9,7 @@ from sqlite3 import Error
 # from config import Configuration
 # clientconfig = Configuration('00:11:22:33:FF:EE')
 
-class Configuration(MAC):
+class Configuration():
 
 	def __init__(self, mac):
 		self.__mac = mac
