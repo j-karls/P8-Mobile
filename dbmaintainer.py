@@ -22,15 +22,17 @@ def main():
 		t.sleep(60*5) # sleep for 5 minutes
 
 def maintainLongterm():
-	db = createConnection('')
+	db = createConnection()
 	cursor = db.cursor()
 	cursor.execute("SELECT * FROM longterm")
 	data = cursor.fetchall()
 	for row in data:
 		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
-		if entrytime.hours() - datetime.now().hours() > agelim_long:
-			id = row['id']
+		diff = timedelta(entrytime) - timedelta(datetime.now())
+		diff = diff.total_seconds() // 3600
+		if diff.seconds/3600 > agelim_long:
+			id = row[0]
 			cur = conn.cursor()
 			cursor.execute('DELETE FROM longterm WHERE id=?', (id,))
 	db.commit()
@@ -44,8 +46,10 @@ def maintainShortterm():
 	for row in data:
 		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
-		if entrytime.hours() - datetime.now().hours() > agelim_short:
-			id = row['id']
+		diff = timedelta(entrytime) - timedelta(datetime.now())
+		diff = diff.total_seconds() // 3600
+		if diff.seconds/3600 > agelim_short:
+			id = row[0]
 			cur = conn.cursor()
 			cursor.execute('DELETE FROM shortterm WHERE id=?', (id,))
 	db.commit()
