@@ -27,7 +27,6 @@ def main():
 				
 				print('Device ' + port + ' connected!')
 				for port in ports:
-					print(port)
 					try:
 						t = Thread(target=reader, args=(port,))
 						t.start()
@@ -35,6 +34,7 @@ def main():
 					except Exception as e:
 						pass
 
+		# Maintain which threads are active, and this which ports are connected
 		for t, port in threads:
 			if not t.is_alive():
 				try:
