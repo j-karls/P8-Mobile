@@ -30,11 +30,10 @@ def main():
 					try:
 						t = Thread(target=reader, args=(port,))
 						t.start()
-						ports.remove(port)
 					except Exception as e:
 						print(e)
-						ports.remove(port)
 						pass
+					
 		else:
 			time.sleep(5)
 
