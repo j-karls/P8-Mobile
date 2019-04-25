@@ -19,15 +19,19 @@ def main():
 	print('Initializing serial reader...')
 	ports = findPorts()
 	print('Found ports:')
-	for port in ports:
-		print(port)
-		try:
-			t = Thread(target=reader, args=(port,))
-			t.start()
-		except Exception as e:
-			print(e)
-			pass
-	print('Found ports: ', findPorts())
+	if ports not None:
+		for port in ports:
+			print(port)
+			try:
+				t = Thread(target=reader, args=(port,))
+				t.start()
+			except Exception as e:
+				print(e)
+				pass
+		print('Found ports: ', findPorts())
+	else:
+		print('No active ports found... trying again in 10 seconds')
+		time.sleep(10)
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
