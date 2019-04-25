@@ -27,7 +27,7 @@ def maintainLongterm():
 	cursor.execute("SELECT * FROM longterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
 		if entrytime.hours() - datetime.now().hours() > agelim_long:
 			id = row['id']
@@ -42,7 +42,7 @@ def maintainShortterm():
 	cursor.execute("SELECT * FROM shortterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
 		if entrytime.hours() - datetime.now().hours() > agelim_short:
 			id = row['id']
