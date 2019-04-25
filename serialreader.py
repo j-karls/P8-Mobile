@@ -35,8 +35,8 @@ def main():
 					except Exception as e:
 						pass
 
-				for t, port  in threads:
-					if not t.is_alive():
+				for t, port in threads:
+					if not t.isAlive():
 						print('removing port from portlist: ' + port)
 						ports.remove(port)
 			else:
