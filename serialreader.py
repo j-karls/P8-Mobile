@@ -31,7 +31,7 @@ def main():
 					try:
 						t = Thread(target=reader, args=(port,))
 						t.start()
-						threads.append([t, port])
+						threads.append(t, port)
 					except Exception as e:
 						pass
 			else:
