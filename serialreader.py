@@ -31,9 +31,8 @@ def main():
 						t = Thread(target=reader, args=(port,))
 						t.start()
 					except Exception as e:
-						print(e)
 						pass
-					
+
 		else:
 			time.sleep(5)
 
