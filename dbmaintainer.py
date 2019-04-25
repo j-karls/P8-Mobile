@@ -13,7 +13,7 @@ from sqlite3 import Error
 agelim_short = 24 #hours, -> 1 day
 agelim_long = 24*14 #hours, -> 14 days
 
-dbfile = '../data.sqlite'
+DBFILE = '/home/pi/Desktop/data.sqlite'
 
 def main():
 	while True:
@@ -56,7 +56,7 @@ def maintainShortterm():
 
 def createConnection():
     try:
-        conn = sqlite3.connect(dbfile)
+        conn = sqlite3.connect(DBFILE)
         return conn
     except Error as e:
         print(e)
