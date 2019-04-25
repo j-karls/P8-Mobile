@@ -32,7 +32,7 @@ def maintainLongterm():
 		diff = (datetime.now() - entrytime).total_seconds()//3600
 		if diff.seconds/3600 > agelim_long:
 			id = row[0]
-			cur = conn.cursor()
+			cur = db.cursor()
 			cursor.execute('DELETE FROM longterm WHERE id=?', (id,))
 	db.commit()
 	db.close()
@@ -48,7 +48,7 @@ def maintainShortterm():
 		diff = (datetime.now() - entrytime).total_seconds()//3600
 		if diff > agelim_short:
 			id = row[0]
-			cur = conn.cursor()
+			cur = db.cursor()
 			cursor.execute('DELETE FROM shortterm WHERE id=?', (id,))
 	db.commit()
 	db.close()
