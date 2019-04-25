@@ -22,7 +22,7 @@ def main():
 		if len(ports) > 0:
 			print('Found ports:')
 			for port in ports:
-				print(port + " has been connected!")
+				print(port + " is connected!")
 				try:
 					t = Thread(target=reader, args=(port,))
 					t.start()
@@ -30,8 +30,7 @@ def main():
 					print(e)
 					pass
 		else:
-			print('No active ports found... trying again in 10 seconds')
-			time.sleep(10)
+			time.sleep(5)
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
