@@ -20,7 +20,7 @@ def main():
 	ports = []
 	while True:
 		for port in findPorts():
-			if port is not in ports:
+			if port not in ports:
 				ports.append(port)
 				
 				print('Connected ports:')
