@@ -27,10 +27,9 @@ def maintainLongterm():
 	cursor.execute("SELECT * FROM longterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
-		diff = timedelta(entrytime) - timedelta(datetime.now())
-		diff = diff.total_seconds() // 3600
+		diff = (datetime.now() - entrytime).total_seconds()//3600
 		if diff.seconds/3600 > agelim_long:
 			id = row[0]
 			cur = conn.cursor()
@@ -44,11 +43,10 @@ def maintainShortterm():
 	cursor.execute("SELECT * FROM shortterm")
 	data = cursor.fetchall()
 	for row in data:
-		entrytime = datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S.%f')
+		entrytime = datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S.%f')
 		#If too old, remove row
-		diff = timedelta(entrytime) - timedelta(datetime.now())
-		diff = diff.total_seconds() // 3600
-		if diff.seconds/3600 > agelim_short:
+		diff = (datetime.now() - entrytime).total_seconds()//3600
+		if diff > agelim_short:
 			id = row[0]
 			cur = conn.cursor()
 			cursor.execute('DELETE FROM shortterm WHERE id=?', (id,))
