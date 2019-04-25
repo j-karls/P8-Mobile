@@ -16,11 +16,10 @@ bindings = [('CO', 'longterm'),
 	('CO2', 'shortterm'),
 	('NO', 'shortterm')]
 
-global ports
-
 def main():
 	print('Initializing serial reader...')
 	ports = []
+	threads = []
 	while True:
 		for port in findPorts():
 			if port not in ports:
@@ -32,11 +31,16 @@ def main():
 					try:
 						t = Thread(target=reader, args=(port,))
 						t.start()
+						threads.append([t, port])
 					except Exception as e:
-						ports.remove(port)
 						pass
 			else:
 				time.sleep(1)
+
+		for t, port  in threads:
+			if not t.isAlive():
+				ports.remove(port)
+				
 
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
