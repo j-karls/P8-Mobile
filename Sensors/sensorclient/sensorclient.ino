@@ -90,11 +90,11 @@ class SensorCO : public Sensor {
       return digitalRead(_pinDigital);
     }
     void cool() {     
-      analogWrite(_pinPower, 71); // set to 1.4V PWM
+      analogWrite(_pinPower, 71); // set to 1.4V (71 of 255 duty cycle equals 1.4 V PWM on average)
       _isHeating = false;
     }
     void heat() {
-      analogWrite(_pinPower, 255); // set to 5V PWM (always on)
+      analogWrite(_pinPower, 255); // set to 5V (meaning PWM always on)
       _isHeating = true;
     }
     void manageState(unsigned long currentTime) {
