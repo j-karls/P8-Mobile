@@ -158,18 +158,8 @@ class MyBluetoothService(
     }
 
     private fun write(str: String) {
-        try {
-            val lex = LanguageLexer(CharStreams.fromString(str))
-            val parser = LanguageParser(CommonTokenStream(lex))
-            //TODO: Parser does not check the string
-            if (true)
-                CommThread().write(str.toByteArray())
-            else
-                throw Exception("Invalid String")
-        }
-        catch (e : Exception) {
-            Log.e(TAG,e.message)
-        }
+        try { CommThread().write(str.toByteArray()) }
+        catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
     fun GET(str: String) {
