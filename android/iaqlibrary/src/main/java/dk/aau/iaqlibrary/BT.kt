@@ -176,11 +176,25 @@ class MyBluetoothService(
         write("GET $str")
     }
 
-    fun GET_time(type: String, from: LocalDateTime, to: LocalDateTime) {
-        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:hh.mm.ss")
+    fun GET_timeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) {
         val fromDate = from.format(formatter)
         val toDate = to.format(formatter)
-        GET("$type time $fromDate to $toDate")
+        GET("$gasType time $fromDate to $toDate")
+    }
+    fun GET_time(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) {
+        val timeDate = time.format(formatter)
+        GET("$gasType time $compare $timeDate")
+    }
+
+    fun GET_value(gasType: String,compare: String , value: Float = 0f) {
+        GET("$gasType value $compare $value")
+    }
+
+    fun GET_alerts(gasType: String, alertType: String) {
+        GET("$gasType alerts = $alertType")
+    }
+    fun GET_status(gasType: String) {
+        GET("$gasType status")
     }
 
     fun SET(str: String) {
