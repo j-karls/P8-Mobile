@@ -25,7 +25,6 @@ const val MESSAGE_READ: Int = 0
 const val MESSAGE_WRITE: Int = 1
 const val MESSAGE_TOAST: Int = 2
 const val MESSAGE_CONNECT: Int = 3
-private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
 // ... (Add other message types here as needed.)
 
 class MyBluetoothService(
@@ -33,14 +32,15 @@ class MyBluetoothService(
     private val handler: Handler,
     device: BluetoothDevice) {
 
+    private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
     private val mmSocket: BluetoothSocket =
         try {Log.i(TAG,device.name)
             device.createRfcommSocketToServiceRecord(UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"))}
         catch (e: Exception) { Log.e(TAG,e.toString())
-            device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
+            try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
-        catch (e: Exception) {Log.e(TAG, e.toString()); throw Exception("No bluetooth connection could be created")}
-
+            catch (e: Exception) {Log.e(TAG, e.toString())
+                throw Exception("No bluetooth connection could be created")}}
 
     private inner class CommThread : Thread() {
 
@@ -171,6 +171,7 @@ class MyBluetoothService(
         val toDate = to.format(formatter)
         GET("$gasType time $fromDate to $toDate")
     }
+
     fun GET_time(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) {
         val timeDate = time.format(formatter)
         GET("$gasType time $compare $timeDate")
