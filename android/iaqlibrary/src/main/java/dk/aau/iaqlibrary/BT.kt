@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -162,37 +160,38 @@ class MyBluetoothService(
         catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
-    fun GET(str: String) {
+    fun get(str: String) {
         write("GET $str")
     }
 
-    fun GET_timeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) {
+    fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) {
         val fromDate = from.format(formatter)
         val toDate = to.format(formatter)
-        GET("$gasType time $fromDate to $toDate")
+        get("$gasType time $fromDate to $toDate")
     }
 
-    fun GET_time(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) {
+    fun getTime(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) {
         val timeDate = time.format(formatter)
-        GET("$gasType time $compare $timeDate")
+        get("$gasType time $compare $timeDate")
     }
 
-    fun GET_value(gasType: String,compare: String , value: Float = 0f) {
-        GET("$gasType value $compare $value")
+    fun getValue(gasType: String, compare: String, value: Float = 0f) {
+        get("$gasType value $compare $value")
     }
 
-    fun GET_alerts(gasType: String, alertType: String) {
-        GET("$gasType alerts = $alertType")
-    }
-    fun GET_status(gasType: String) {
-        GET("$gasType status")
+    fun getAlerts(gasType: String, alertType: String) {
+        get("$gasType alerts = $alertType")
     }
 
-    fun SET(str: String) {
+    fun getStatus(gasType: String) {
+        get("$gasType status")
+    }
+
+    fun set(str: String) {
         write("SET $str")
     }
 
-    fun SET_Guidelines(guideline: String) {
-        SET("guideline $guideline")
+    fun setGuidelines(guideline: String) {
+        set("guideline $guideline")
     }
 }
