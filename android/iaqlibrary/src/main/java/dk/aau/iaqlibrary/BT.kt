@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
-import android.text.format.DateFormat
 import android.util.Log
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
@@ -13,10 +12,10 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
 import java.nio.charset.Charset
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
 
@@ -134,9 +133,11 @@ class MyBluetoothService(
     fun connect() {
         try {
             if (mmSocket.isConnected) {
-            ConnectThread().start()}
-            else
+                ConnectThread().start()}
+            else{
+                handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
                 throw Exception("Socket cannot be connected")
+            }
             handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
             CommThread().start()
         }
@@ -159,7 +160,9 @@ class MyBluetoothService(
     private fun write(str: String) {
         try {
             val lex = LanguageLexer(CharStreams.fromString(str))
-            if (LanguageParser(CommonTokenStream(lex)).buildParseTree)
+            val parser = LanguageParser(CommonTokenStream(lex))
+            //TODO: Parser does not check the string
+            if (true)
                 CommThread().write(str.toByteArray())
             else
                 throw Exception("Invalid String")
@@ -177,7 +180,7 @@ class MyBluetoothService(
         val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:hh.mm.ss")
         val fromDate = from.format(formatter)
         val toDate = to.format(formatter)
-        GET("$type $fromDate to $toDate")
+        GET("$type time $fromDate to $toDate")
     }
 
     fun SET(str: String) {

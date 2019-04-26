@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
+            //_bTService.GET("lululululululul")
             _bTService.GET_time("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
         }
     }
