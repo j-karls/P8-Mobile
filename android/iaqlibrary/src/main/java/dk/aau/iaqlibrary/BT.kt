@@ -160,38 +160,40 @@ class MyBluetoothService(
         catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
-    fun get(str: String) {
+    fun get(vararg strs: String) {
+        val str = strs.fold("") {currentValue, result -> "$currentValue & $result"}
         write("GET $str")
     }
 
-    fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) {
+    fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
         val fromDate = from.format(formatter)
         val toDate = to.format(formatter)
-        get("$gasType time $fromDate to $toDate")
+        return ("$gasType time $fromDate to $toDate")
     }
 
-    fun getTime(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) {
+    fun getTime(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) : String {
         val timeDate = time.format(formatter)
-        get("$gasType time $compare $timeDate")
+        return ("$gasType time $compare $timeDate")
     }
 
-    fun getValue(gasType: String, compare: String, value: Float = 0f) {
-        get("$gasType value $compare $value")
+    fun getValue(gasType: String, compare: String, value: Float = 0f) : String {
+        return ("$gasType value $compare $value")
     }
 
-    fun getAlerts(gasType: String, alertType: String) {
-        get("$gasType alerts = $alertType")
+    fun getAlerts(gasType: String, alertType: String): String {
+        return ("$gasType alerts = $alertType")
     }
 
-    fun getStatus(gasType: String) {
-        get("$gasType status")
+    fun getStatus(gasType: String): String {
+        return ("$gasType status")
     }
 
-    fun set(str: String) {
+    fun set(vararg strs: String) {
+        val str = strs.fold("") {currentValue, result -> "$currentValue & $result" }
         write("SET $str")
     }
 
-    fun setGuidelines(guideline: String) {
-        set("guideline $guideline")
+    fun setGuidelines(guideline: String) : String {
+        return ("guideline $guideline")
     }
 }
