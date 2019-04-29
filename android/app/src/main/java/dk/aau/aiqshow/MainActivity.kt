@@ -62,7 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         buttonWrite.setOnClickListener {
             val timeInterval = _bTService.getTimeInterval("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
-            _bTService.get(timeInterval)
+            val value = _bTService.getValue("CO", value = 50f)
+            _bTService.get(timeInterval, value)
         }
     }
 

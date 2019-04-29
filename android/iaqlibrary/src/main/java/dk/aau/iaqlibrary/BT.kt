@@ -160,9 +160,12 @@ class MyBluetoothService(
         catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
-    fun get(vararg strs: String) {
-        val str = strs.fold("") {currentValue, result -> "$currentValue & $result"}
-        write("GET $str")
+    fun get(vararg args: String) {
+        if (args.isNotEmpty()) {
+            val str = args.foldRight("") {currentValue, result -> "$currentValue & $result" }.dropLast(3)
+            println("GET $str")
+        }
+        else throw IllegalArgumentException("args cannot be empty")
     }
 
     fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
@@ -176,11 +179,11 @@ class MyBluetoothService(
         return ("$gasType time $compare $timeDate")
     }
 
-    fun getValue(gasType: String, compare: String, value: Float = 0f) : String {
+    fun getValue(gasType: String, compare: String = ">", value: Float = 0f) : String {
         return ("$gasType value $compare $value")
     }
 
-    fun getAlerts(gasType: String, alertType: String): String {
+    fun getAlerts(gasType: String, alertType: String = "predicted"): String {
         return ("$gasType alerts = $alertType")
     }
 
@@ -188,12 +191,15 @@ class MyBluetoothService(
         return ("$gasType status")
     }
 
-    fun set(vararg strs: String) {
-        val str = strs.fold("") {currentValue, result -> "$currentValue & $result" }
-        write("SET $str")
+    fun set(vararg args: String) {
+        if (args.isNotEmpty()) {
+            val str = args.foldRight("") {currentValue, result -> "$currentValue & $result" }.dropLast(3)
+            write("SET $str")
+        }
+        else throw IllegalArgumentException("args cannot be empty")
     }
 
-    fun setGuidelines(guideline: String) : String {
+    fun setGuidelines(guideline: String = "WHO") : String {
         return ("guideline $guideline")
     }
 }
