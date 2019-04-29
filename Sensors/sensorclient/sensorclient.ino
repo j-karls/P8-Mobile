@@ -7,7 +7,7 @@ protected:
   unsigned long _cycleStartTime; // when we started on the period/cycle of the sensor
   virtual double getRawValue() = 0; // get raw measurement directly from sensor at the current time
 public:
-  char name[];
+  String sensorName;
   unsigned long cycleTime; // time it takes to finish one period
   Sensor() {}
   virtual void calibrate() = 0; // perform one-time calibration of sensor, likely at startup time
@@ -18,129 +18,174 @@ public:
   virtual void manageState(unsigned long currentTime) = 0;
 };
 
-class SensorCO : public Sensor {
-  protected:
-    int _pinData;
-    int _pinPower;
-    int _pinDigital;
+class SensorMQ : public Sensor {
+protected:
+  int _pinData; // the analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
+  int _pinPower; // the analog pin that the sensor draws power (PWM) from
+  int _pinDigital; // the digital pin, which is either 0 or 1, depending on if the gas measurement is over a certain amount (can be configured with the load resistor)
+  bool _isHeating = false;
+  int _coolPWM;
+  int _heatPWM;
 
-    bool _isHeating = false;
-    unsigned long _heatPeriod = 60000;
-    unsigned long _coolPeriod = 90000; 
-    int _numMeasurements = 0;
-    double _aggregatedValue = 0;
+  double _analogMeasurementFresh;
+  double _rRatioFresh; // r-ratio constant in fresh air as defined by datasheet
+  double _r0; // a constant that is determined based on sensor results in clean air
+  double _funcConstantA; // a constant that is determined by finding the regression of the curve describing sensor output in the datasheet 
+  double _funcConstantB;  // another constant from the same regression
+  double _rl; // load resistance in Ohm
+  double _vc = 5; // control voltage in Volt
 
-    double _analogMeasurementFresh = 40;
-    double _rRatioFresh = 1; // r-ratio constant in fresh air as defined by datasheet
-    double _r0 = -1; // a constant that is determined based on sensor results in clean air
-    double _funcConstantA = 0.8494; // a constant that is determined by finding the regression of the curve describing sensor output in the datasheet 
-    double _funcConstantB = -0.5455;  // another constant from the same regression
-    double _rl = 10000; // load resistance in Ohm
-    double _vc = 5; // control voltage in Volt
+  int _numMeasurements = 0;
+  double _aggregatedValue = 0;
+public:
+  SensorMQ(int pinData, int pinDigital, int pinPower) { 
+    _pinData = pinData; 
+    _pinDigital = pinDigital; 
+    _pinPower = pinPower; 
+    pinMode(_pinData, INPUT); 
+    pinMode(_pinPower, OUTPUT);
+    pinMode(_pinDigital, INPUT);
 
-    void startNewCycle(unsigned long newCycleStartTime) {
-      _cycleStartTime = newCycleStartTime;
+    canGetNewValue = false;
+    _cycleStartTime = 0;
+  }
+  void calibrate() { /* no need to calibrate anything in particular */ } 
+  void performAggregation(double newValue) {
+    _aggregatedValue += newValue;
+    _numMeasurements++;
+  }
+  double convertVRL(double analogValue) {
+    // analogValue is returned by the reading the sensor with analogRead and is a number between 0 and 1023
+    return (analogValue / 1023) * 5; 
+    // voltage over the load resistor in Volt: basically, the "output" voltage of the circuit, 
+    // multiplied with 5, as it is the maximum voltage that can be returned by the arduino
+  }
+  double convertRS(double analogValue) {
+    double vrl = convertVRL(analogValue);  
+    return ((_vc * _rl) / vrl) - _rl; // rs is resistance over the sensor in Ohm
+  }
+  double convertPPM(double analogValue) {
+    double rs = convertRS(analogValue);
+    double rRatio = rs / _r0;
+    // Serial.println(String(analogValue, 4));
+    // Serial.println(String(_r0, 4));
+    // Serial.println(String(rRatio, 4));
+    // Serial.println(String((pow((_funcConstantA / rRatio), (1 / -_funcConstantB))), 4));
+    return pow((_funcConstantA / rRatio), (1 / -_funcConstantB)); // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
+  }
+  double getRawValue() {
+    return analogRead(_pinData);
+  }
+  double getDigitalValue() {
+    return digitalRead(_pinDigital);
+  }
+  double getValue() {
+    canGetNewValue = false;
+    return _aggregatedValue / _numMeasurements; // return average
+  }
+  void cool() {     
+    analogWrite(_pinPower, _coolPWM); 
+    _isHeating = false;
+  }
+  void heat() {
+    analogWrite(_pinPower, _heatPWM); 
+    _isHeating = true;
+  }
+  void startNewCycle(unsigned long newCycleStartTime) {
+    _cycleStartTime = newCycleStartTime;
+  }
+};
+
+class SensorMQ7 : public SensorMQ {
+protected:
+  unsigned long _heatPeriod = 6000;
+  unsigned long _coolPeriod = 9000; 
+public:
+  SensorMQ7(int pinData, int pinDigital, int pinPower) : SensorMQ(pinData, pinDigital, pinPower) { 
+    sensorName = String("MQ7");
+    cycleTime = _heatPeriod + _coolPeriod;
+    _analogMeasurementFresh = 40;
+    _rRatioFresh = 1;
+    _funcConstantA = 0.8494;
+    _funcConstantB = -0.5455;
+    _rl = 10000;
+    _r0 = _rRatioFresh * (convertRS(_analogMeasurementFresh));
+    _coolPWM = 71; // set to 1.4V (71 of 255 duty cycle equals 1.4 V PWM on average)
+    _heatPWM = 255; // set to 5V (meaning PWM always on)
+  }
+  void manageState(unsigned long currentTime) {
+    if (_cycleStartTime == 0) { // if we have not yet started a cycle
+      startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
       heat();
     }
-    void performAggregation(double newValue) {
-      _aggregatedValue += newValue;
-      _numMeasurements++;
-    }
-    double convertVRL(double analogValue) {
-      // analogValue is returned by the reading the sensor with analogRead and is a number between 0 and 1023
-      return (analogValue / 1023) * 5; // voltage over the load resistor in Volt: basically, the "output" voltage of the circuit, multiplied with 5, as it is the maximum voltage that can be returned by the arduino
-    }
-    double convertRS(double analogValue) {
-      double vrl = convertVRL(analogValue);  
-      return ((_vc * _rl) / vrl) - _rl; // rs is resistance over the sensor in Ohm
-    }
-    double convertPPM(double analogValue) {
-      double rs = convertRS(analogValue);
-      double rRatio = rs / _r0; 
-      
-      // Serial.println(String(analogValue, 4));
-      // Serial.println(String(_r0, 4));
-      // Serial.println(String(rRatio, 4));
-      Serial.println(String((pow((_funcConstantA / rRatio), (1 / -_funcConstantB))), 4));
-      
-      return pow((_funcConstantA / rRatio), (1 / -_funcConstantB)); // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
-    }
-  public:
-    String name = String("CO");
-    void calibrate() { /* no need to calibrate anything in particular */ } 
+    unsigned long cycleProgress = currentTime - _cycleStartTime;
 
-    SensorCO(int pinData, int pinDigital, int pinPower) { 
-        _pinData = pinData; // the analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
-        _pinDigital = pinDigital; 
-        _pinPower = pinPower; // the analog pin that the sensor draws power (PWM) from
+    if (cycleProgress >= cycleTime) { // if we're done with a measurement cycle
+      canGetNewValue = true;
+      startNewCycle(currentTime);
+      heat();
+    }
+    else if (cycleProgress >= _heatPeriod && _isHeating) { // switch state to cooling
+      cool();
+    }
+    else if (cycleProgress >= _heatPeriod) { // if we're in the cooling state
+      heat(); // turn on the sensor for short time, such that we can actually read values
+      performAggregation(convertPPM(getRawValue()));
+      cool(); // return to cooling state
+    }
+    // otherwise, we´re currently heating, and should continue to do so
+  }
+};
 
-        pinMode(_pinData, INPUT); 
-        pinMode(_pinPower, OUTPUT);
-        pinMode(_pinDigital, INPUT);
+class SensorMQ135 : public SensorMQ {
+public:
+  SensorMQ135(int pinData, int pinDigital, int pinPower) : SensorMQ(pinData, pinDigital, pinPower) { 
+    sensorName = String("MQ135");
+    cycleTime = 10000; // we aggregate raw measurements every 10 seconds
+    _analogMeasurementFresh = 40; //////////////FIX
+    _rRatioFresh = 3.7;
+    _funcConstantA = 5.1451;
+    _funcConstantB = -0.3522;
+    _rl = 10000;
+    _r0 = _rRatioFresh * (convertRS(_analogMeasurementFresh));
+    _coolPWM = 0; // shut off completely
+    _heatPWM = 255; // set to 5V (meaning PWM always on)
+  }
+  void manageState(unsigned long currentTime) {
+    if (_cycleStartTime == 0) { // if we have not yet started a cycle
+      startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
+      heat();
+    }
+    unsigned long cycleProgress = currentTime - _cycleStartTime;
 
-        canGetNewValue = false;
-        cycleTime = _heatPeriod + _coolPeriod;
-        _cycleStartTime = 0;
-        _r0 = _rRatioFresh * (convertRS(_analogMeasurementFresh));
+    if (cycleProgress >= cycleTime) { // if we're done with a measurement cycle
+      canGetNewValue = true;
+      startNewCycle(currentTime);
     }
-    double getRawValue() {
-      return analogRead(_pinData);
+    else {
+      performAggregation(convertPPM(getRawValue()));
     }
-    double getDigitalValue() {
-      return digitalRead(_pinDigital);
-    }
-    void cool() {     
-      analogWrite(_pinPower, 71); // set to 1.4V (71 of 255 duty cycle equals 1.4 V PWM on average)
-      _isHeating = false;
-    }
-    void heat() {
-      analogWrite(_pinPower, 255); // set to 5V (meaning PWM always on)
-      _isHeating = true;
-    }
-    void manageState(unsigned long currentTime) {
-      if (_cycleStartTime == 0) { // if we have not yet started a cycle
-        startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
-      }
-      unsigned long cycleProgress = currentTime - _cycleStartTime;
-
-      if (cycleProgress >= cycleTime) { // if we're done with a measurement cycle
-        canGetNewValue = true;
-        startNewCycle(currentTime);
-      }
-      else if (cycleProgress >= _heatPeriod && _isHeating) { // switch state to cooling
-        cool();
-      }
-      else if (cycleProgress >= _heatPeriod) { // if we're in the cooling state
-        heat(); // turn on the sensor for short time, such that we can actually read values
-        performAggregation(convertPPM(getRawValue()));
-        cool(); // return to cooling state
-      }
-      // otherwise, we´re currently heating, and should continue to do so
-    }
-    double getValue() {
-      canGetNewValue = false;
-      return _aggregatedValue / _numMeasurements; // return average
-    }
+  }
 };
 
 class Diode {
-  private: 
-    int _pin;
-    
-  public:
-    Diode(int pin) {
-      _pin = pin;
-      pinMode(_pin, OUTPUT);
-    }
-    void turnOn() {
-      digitalWrite(_pin, HIGH);
-    }
-    void turnOff() {
-      digitalWrite(_pin, LOW);
-    }
-    void toggleState() {
-      digitalWrite(_pin, !digitalRead(_pin));
-    }
+private: 
+  int _pin;
+  
+public:
+  Diode(int pin) {
+    _pin = pin;
+    pinMode(_pin, OUTPUT);
+  }
+  void turnOn() {
+    digitalWrite(_pin, HIGH);
+  }
+  void turnOff() {
+    digitalWrite(_pin, LOW);
+  }
+  void toggleState() {
+    digitalWrite(_pin, !digitalRead(_pin));
+  }
 };
 
 
@@ -156,13 +201,16 @@ void delaySec(int sec)
   delaySec(sec - 1);
 }
 
+void serialPrintResult(Sensor *sensor) {
+  Serial.println(String(sensor->sensorName + String('|') + String(sensor->getValue(), 4)));
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Program flow
 
 Diode diode = Diode(13);
-SensorCO sensorCO = SensorCO(A3, 8, A0);
-// INSERT OTHER SENSORS
+SensorMQ7 sensorMQ7 = SensorMQ7(A3, 8, A0);
+SensorMQ135 sensorMQ135 = SensorMQ135(A4, 7, A1);
 
 unsigned long startTime;
 unsigned long currentTime;
@@ -171,23 +219,32 @@ void setup()
 {
   Serial.begin(9600); // initialize serial connection with a data rate of 9600 bits per second
   startTime = millis(); // get number of milliseconds since the program started
-  sensorCO.calibrate();
+  sensorMQ7.calibrate();
+  sensorMQ135.calibrate();
 }
 
 void loop()
 {
   delay(1000);
-  
   currentTime = millis(); 
 
   // Get new value
-  if (sensorCO.canGetNewValue) {
-    //Serial.println(currentTime);
-    Serial.println(String(sensorCO.name + String('|') + String(sensorCO.getValue(), 4)));
-    //Serial.println(sensorCO.getRawValue());
-    Serial.println("------------------------");
+  if (sensorMQ7.canGetNewValue) {
+    serialPrintResult(&sensorMQ7);
+    //Serial.println(sensorMQ7.getRawValue());
   }
-  
+  if (sensorMQ135.canGetNewValue) {
+    serialPrintResult(&sensorMQ135);
+  }
+  // Serial.println("------------------------");
+
   // Manage state
-  sensorCO.manageState(currentTime);
+  sensorMQ7.manageState(currentTime);
+  sensorMQ135.manageState(currentTime);
 }
+
+
+
+
+
+// Calibrate with: http://co2now.org/
