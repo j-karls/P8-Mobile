@@ -1,5 +1,6 @@
 package dk.aau.iaqlibrary
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
@@ -28,12 +29,13 @@ const val MESSAGE_CONNECT: Int = 3
 class MyBluetoothService(
     // handler that gets info from Bluetooth service
     private val handler: Handler,
+    uuid : UUID = UUID.randomUUID(),
     device: BluetoothDevice) {
 
     private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
     private val mmSocket: BluetoothSocket =
         try {Log.i(TAG,device.name)
-            device.createRfcommSocketToServiceRecord(UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"))}
+            device.createRfcommSocketToServiceRecord(uuid)}
         catch (e: Exception) { Log.e(TAG,e.toString())
             try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
@@ -59,6 +61,7 @@ class MyBluetoothService(
                     break
                 }
                 // Send the obtained bytes to the UI activity.
+                //TODO: preface responses from pi with code, put in arg2
                 val readMsg = handler.obtainMessage(
                     MESSAGE_READ, numBytes, -1,
                     mmBuffer.toString(Charset.defaultCharset()))
@@ -102,20 +105,13 @@ class MyBluetoothService(
     private inner class ConnectThread : Thread() {
 
         override fun run() {
-            //TODO: Discovery
-            //BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+            BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
 
-            mmSocket.connect()
-
-            /*mmSocket.use { socket ->
+            mmSocket.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
                 socket.connect()
-
-                // The connection attempt succeeded. Perform work associated with
-                // the connection in a separate thread.
-                //this@MyBluetoothService.CommThread().run()
-            }*/
+            }
         }
 
         // Closes the client socket and causes the thread to finish.
@@ -136,11 +132,11 @@ class MyBluetoothService(
                 handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
                 throw Exception("Socket cannot be connected")
             }
-            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
             CommThread().start()
+            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
         }
         catch (e : Exception) {
-            Log.e(TAG,e.message)
+            Log.e(TAG, e.message)
         }
     }
 
@@ -201,5 +197,9 @@ class MyBluetoothService(
 
     fun setGuidelines(guideline: String = "WHO") : String {
         return ("guideline $guideline")
+    }
+
+    fun dateTimeFormatter(time: LocalDateTime) : String {
+        return time.format(formatter)
     }
 }
