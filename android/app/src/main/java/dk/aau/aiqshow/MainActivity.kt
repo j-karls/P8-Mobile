@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     private val _weakRef = WeakReference(this)
     private val _handler = MyHandler(_weakRef)
     private val _device : BluetoothDevice = _btAdapter.getRemoteDevice("B8:27:EB:4C:0D:D9")
-    private val _bTService : MyBluetoothService = MyBluetoothService(
+    private var _btService : MyBluetoothService = MyBluetoothService(
         _handler,
         UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"),
         _device)
@@ -48,25 +48,35 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
+
         buttonConnect.setOnClickListener {
-            //TODO: Discovery
-            _bTService.connect()
+            val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
+            val device = pairedDevices?.find { it.name.contains("CreamPi") } ?: _device
+            _btService = MyBluetoothService(_handler,device = device)
+
+            _btService.connect()
         }
 
         buttonDisconnect.setOnClickListener {
-            _bTService.disconnect()
+            _btService.disconnect()
         }
 
         buttonWrite.setOnClickListener {
-            val timeInterval = _bTService.getTimeInterval("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
-            val value = _bTService.getValue("CO", value = 50f)
-            _bTService.get(timeInterval, value)
+            val timeInterval = _btService.getTimeInterval("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
+            val value = _btService.getValue("CO", value = 50f)
+            _btService.get(timeInterval, value)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        _bTService.disconnect()
+        _btService.disconnect()
+    }
+
+    private fun discovery() : BluetoothDevice {
+        throw NotImplementedError("lul")
     }
 
 }
