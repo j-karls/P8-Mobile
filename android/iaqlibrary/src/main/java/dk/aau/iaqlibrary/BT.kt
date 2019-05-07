@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.os.Handler
+import android.os.Message
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
@@ -24,12 +25,15 @@ const val MESSAGE_READ: Int = 0
 const val MESSAGE_WRITE: Int = 1
 const val MESSAGE_TOAST: Int = 2
 const val MESSAGE_CONNECT: Int = 3
+const val MESSAGE_EMPTY: Int = 4
+const val MESSAGE_ERROR: Int = 5
 // ... (Add other message types here as needed.)
 
 class MyBluetoothService(
     // handler that gets info from Bluetooth service
     private val handler: Handler,
-    uuid : UUID = UUID.randomUUID(),
+    // optional UUID
+    uuid : UUID? = null,
     device: BluetoothDevice) {
 
     private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
@@ -57,14 +61,34 @@ class MyBluetoothService(
                 numBytes = try {
                     mmInStream.read(mmBuffer)
                 } catch (e: IOException) {
-                    Log.d(TAG, "Input stream was disconnected", e)
+                    Log.d(TAG, "Input stream disconnected", e)
                     break
                 }
-                // Send the obtained bytes to the UI activity.
                 //TODO: preface responses from pi with code, put in arg2
-                val readMsg = handler.obtainMessage(
-                    MESSAGE_READ, numBytes, -1,
-                    mmBuffer.toString(Charset.defaultCharset()))
+
+                // Convert the message to String s.t. the intention of the message can be understood
+                val message = mmBuffer.toString(Charset.defaultCharset())
+
+                var readMsg: Message?
+
+                when (message) {
+                    "ERROR" ->
+                        readMsg = handler.obtainMessage(
+                        MESSAGE_ERROR, numBytes, -1,
+                        message
+                    )
+                    "" ->
+                        readMsg = handler.obtainMessage(
+                        MESSAGE_EMPTY, numBytes, -1,
+                        message
+                    )
+                    else ->
+                        readMsg = handler.obtainMessage(
+                        MESSAGE_READ, numBytes, -1,
+                        message
+                    )
+                }
+
                 readMsg.sendToTarget()
             }
         }

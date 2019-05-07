@@ -18,6 +18,7 @@ private const val TAG = "MAIN_ACTIVITY_DEBUG"
 
 class MainActivity : AppCompatActivity() {
 
+    //TODO: ask to turn on bluetooth
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _weakRef = WeakReference(this)
     private val _handler = MyHandler(_weakRef)
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
                 msg.what == 1 -> Log.i("$TAG WRITE",thing)
                 msg.what == 2 -> Log.i("$TAG TOAST",thing)
                 msg.what == 3 -> Log.i("$TAG CONNECTED",thing)
+                msg.what == 4 -> Log.i("$TAG MESSAGE EMPTY", thing)
                 else -> Log.i(TAG, "ERROR")
             }
         }
@@ -47,9 +49,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-
-
 
         buttonConnect.setOnClickListener {
             val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
