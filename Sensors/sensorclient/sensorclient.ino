@@ -1,4 +1,6 @@
 
+#include "cactus_io_AM2302.h"
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Classes
 
@@ -11,7 +13,7 @@ public:
   unsigned long cycleTime; // time it takes to finish one period
   Sensor() {}
   virtual void calibrate() = 0; // perform one-time calibration of sensor, likely at startup time
-  virtual double getValue() = 0; // get some sort of aggregated or corrected value
+  virtual String getValue() = 0; // get some sort of aggregated or corrected value
 
   // State machine functions
   bool canGetNewValue;
@@ -79,9 +81,9 @@ public:
   double getDigitalValue() {
     return digitalRead(_pinDigital);
   }
-  double getValue() {
+  String getValue() {
     canGetNewValue = false;
-    return _aggregatedValue / _numMeasurements; // return average
+    return String((_aggregatedValue / _numMeasurements), 4); // return average
   }
   void cool() {     
     analogWrite(_pinPower, _coolPWM); 
@@ -168,6 +170,57 @@ public:
   }
 };
 
+class SensorAM2302 : public Sensor {
+protected:
+  AM2302* localAM2302;
+  double getRawValue() {
+    Serial.println("test1");
+    localAM2302->readHumidity();
+    Serial.println("test2 " + String(localAM2302->humidity));
+    localAM2302->readTemperature();
+    Serial.println("test3 " + String(localAM2302->temperature_C));
+    return 0;    
+  }
+public:
+  int _numMeasurements = 0;
+  int _aggHumidity = 0;
+  int _aggTemperature = 0;
+  void calibrate() { /* no need to calibrate anything in particular */ }
+  String getValue() {
+    int humidity = _aggHumidity/_numMeasurements;
+    int temperature = _aggTemperature/_numMeasurements;
+    _aggHumidity = 0;
+    _aggTemperature = 0;
+    _numMeasurements = 0;
+    return String("humidity: " + String(humidity) + " %, Temperature: " + String(temperature) + " *C");
+  }
+  SensorAM2302(int pinDigital) {
+    sensorName = String("AM2302");
+    AM2302 localAM2302 = AM2302(pinDigital);
+    canGetNewValue = false;
+  }
+  void manageState(unsigned long currentTime) {
+    
+    getRawValue();
+    
+    if (isnan(localAM2302->humidity) || isnan(localAM2302->temperature_C)) {
+      return;
+    }
+    else {
+      _aggHumidity += localAM2302->humidity;
+      _aggTemperature += localAM2302->temperature_C;
+      _numMeasurements++;    
+    }
+    
+    if (_numMeasurements == 10) {
+      canGetNewValue = true;
+    }
+  }
+};
+
+
+
+
 class Diode {
 private: 
   int _pin;
@@ -202,7 +255,7 @@ void delaySec(int sec)
 }
 
 void serialPrintResult(Sensor *sensor) {
-  Serial.println(String(sensor->sensorName + String('|') + String(sensor->getValue(), 4)));
+  Serial.println(String(sensor->sensorName + String('|') + sensor->getValue()));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,6 +264,7 @@ void serialPrintResult(Sensor *sensor) {
 Diode diode = Diode(13);
 SensorMQ7 sensorMQ7 = SensorMQ7(A3, 8, A0);
 SensorMQ135 sensorMQ135 = SensorMQ135(A4, 7, A1);
+SensorAM2302 sensorAM2302 = SensorAM2302(12);
 
 unsigned long startTime;
 unsigned long currentTime;
@@ -221,6 +275,7 @@ void setup()
   startTime = millis(); // get number of milliseconds since the program started
   sensorMQ7.calibrate();
   sensorMQ135.calibrate();
+  sensorAM2302.calibrate();
 }
 
 void loop()
@@ -236,11 +291,16 @@ void loop()
   if (sensorMQ135.canGetNewValue) {
     serialPrintResult(&sensorMQ135);
   }
+  if (sensorAM2302.canGetNewValue) {
+    serialPrintResult(&sensorAM2302);
+  }
+  
   // Serial.println("------------------------");
 
   // Manage state
   sensorMQ7.manageState(currentTime);
   sensorMQ135.manageState(currentTime);
+  sensorAM2302.manageState(currentTime);
 }
 
 
