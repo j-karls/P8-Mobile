@@ -1,5 +1,6 @@
 package dk.aau.aiqshow
 
+import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.support.v7.app.AppCompatActivity
@@ -12,12 +13,19 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
 import java.time.LocalDateTime
 import java.util.*
+import android.support.v4.app.FragmentActivity
+import android.support.v4.app.FragmentManager
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentTransaction
+import android.view.View
+import android.widget.TextView
+import android.widget.Toolbar
+import kotlinx.android.synthetic.main.write_fragment.*
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : FragmentActivity(), WriteFragment.WriteListener {
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _weakRef = WeakReference(this)
     private val _handler = MyHandler(_weakRef)
@@ -26,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         _handler,
         UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"),
         _device)
+    var isFragmentLoaded = false
+    val manager = supportFragmentManager
 
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
@@ -33,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                 msg.obj as String
             else msg.data.getString("toast")
 
-            ref.get()!!.text.text = thing
+            ref.get()!!.mainText.text = thing
             when {
                 msg.what == 0 -> Log.i("$TAG READ",thing)
                 msg.what == 1 -> Log.i("$TAG WRITE",thing)
@@ -48,9 +58,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-
-
         buttonConnect.setOnClickListener {
             val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
             val device = pairedDevices?.find { it.name.contains("CreamPi") } ?: _device
@@ -64,10 +71,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonWrite.setOnClickListener {
-            val timeInterval = _btService.getTimeInterval("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
+            /*val timeInterval = _btService.getTimeInterval("CO", LocalDateTime.now().minusMinutes(5), LocalDateTime.now())
             val value = _btService.getValue("CO", value = 50f)
-            _btService.get(timeInterval, value)
+            _btService.get(timeInterval, value)*/
+            //if(!isFragmentLoaded)
+            //    ShowFragment()
+            val testDialog = TestDialog()
+            testDialog.show(manager, "test")
         }
+    }
+
+    override fun onButtonClick(text: String) {
+        mainText.text = text
+
     }
 
     override fun onDestroy() {
@@ -77,6 +93,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun discovery() : BluetoothDevice {
         throw NotImplementedError("lul")
+    }
+
+    fun ShowFragment(){
+        val transaction = manager.beginTransaction()
+        val fragment = WriteFragment()
+        transaction.add(R.id.writeFragment, fragment)
+        transaction.commit()
+        Log.d("Fragment", "ShowFragment()")
+        isFragmentLoaded = true
+    }
+
+    fun HideFragment(){
+        val transaction = manager.beginTransaction()
+        val fragment = manager.findFragmentById(R.id.writeFragment)
+        transaction.remove(fragment!!)
+        transaction.commit()
+        Log.d("Fragment", "HideFragment()")
+        isFragmentLoaded = false
     }
 
 }
