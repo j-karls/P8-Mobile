@@ -81,13 +81,13 @@ public:
   double getDigitalValue() {
     return digitalRead(_pinDigital);
   }
-  double getValue() {
+  String getValue() {
     int nums = _numMeasurements;
     double aggs = _aggregatedValue;
     _numMeasurements = 0;
     _aggregatedValue = 0;
     canGetNewValue = false;
-    return aggs / nums; // return average
+    return String(aggs / nums, 4); // return average
   }
   void cool() {     
     analogWrite(_pinPower, _coolPWM); 
