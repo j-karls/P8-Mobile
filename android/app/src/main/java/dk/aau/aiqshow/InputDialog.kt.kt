@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import android.widget.*
 import java.lang.Exception
 
-class `InputDialog.kt` : DialogFragment(),AdapterView.OnItemSelectedListener {
+class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
     private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),TimeFragment())

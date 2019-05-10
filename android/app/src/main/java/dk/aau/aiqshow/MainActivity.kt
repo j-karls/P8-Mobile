@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(),SuperFragment.InputListener {
             _btService.get(timeInterval, value)*/
             //if(!isFragmentLoaded)
             //    ShowFragment()
-            val testDialog = `InputDialog.kt`()
+            val testDialog = InputDialog()
             testDialog.show(_manager, "test")
         }
     }
