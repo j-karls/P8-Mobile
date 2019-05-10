@@ -1,6 +1,5 @@
 package dk.aau.aiqshow
 
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.support.v7.app.AppCompatActivity
@@ -11,21 +10,13 @@ import android.util.Log
 import dk.aau.iaqlibrary.MyBluetoothService
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
-import java.time.LocalDateTime
 import java.util.*
-import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentTransaction
-import android.view.View
-import android.widget.TextView
-import android.widget.Toolbar
-import kotlinx.android.synthetic.main.write_fragment.*
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),WriteFragment.WriteListener {
 
     //TODO: ask to turn on bluetooth
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -36,8 +27,7 @@ class MainActivity : AppCompatActivity() {
         _handler,
         UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"),
         _device)
-    var isFragmentLoaded = false
-    val manager = supportFragmentManager
+    private val _manager: FragmentManager = supportFragmentManager
 
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
@@ -80,7 +70,7 @@ class MainActivity : AppCompatActivity() {
             //if(!isFragmentLoaded)
             //    ShowFragment()
             val testDialog = TestDialog()
-            testDialog.show(manager, "test")
+            testDialog.show(_manager, "test")
         }
     }
 
@@ -96,24 +86,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun discovery() : BluetoothDevice {
         throw NotImplementedError("lul")
-    }
-
-    fun ShowFragment(){
-        val transaction = manager.beginTransaction()
-        val fragment = WriteFragment()
-        transaction.add(R.id.writeFragment, fragment)
-        transaction.commit()
-        Log.d("Fragment", "ShowFragment()")
-        isFragmentLoaded = true
-    }
-
-    fun HideFragment(){
-        val transaction = manager.beginTransaction()
-        val fragment = manager.findFragmentById(R.id.writeFragment)
-        transaction.remove(fragment!!)
-        transaction.commit()
-        Log.d("Fragment", "HideFragment()")
-        isFragmentLoaded = false
     }
 
 }

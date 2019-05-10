@@ -183,7 +183,7 @@ class MyBluetoothService(
     fun get(vararg args: String) {
         if (args.isNotEmpty()) {
             val str = args.foldRight("") {currentValue, result -> "$currentValue & $result" }.dropLast(3)
-            println("GET $str")
+            write("GET $str")
         }
         else throw IllegalArgumentException("args cannot be empty")
     }

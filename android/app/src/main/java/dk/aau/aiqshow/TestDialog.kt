@@ -1,39 +1,85 @@
 package dk.aau.aiqshow
 
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.DialogInterface
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentManager
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.TextView
-import kotlinx.android.synthetic.*
+import android.view.ViewGroup
+import android.widget.*
 import kotlinx.android.synthetic.main.test_dialog.*
-import org.w3c.dom.Text
+import java.lang.Exception
 
-class TestDialog : DialogFragment()  {
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return activity?.let {
+class TestDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
+
+    private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
+    private val _frag_id: Array<Fragment> = arrayOf(WriteFragment())
+    private var _context: Context? = null
+    private val TAG: String = "DEBUG_DIALOG"
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        _context = context
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val v = inflater.inflate(R.layout.test_dialog,container,false)
+
+        val aa = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
+        val spin = v.findViewById<Spinner>(R.id.test_spinner)
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spin.onItemSelectedListener = this
+        spin.adapter = aa
+        return v
+    }
+
+    //unused
+    /*override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val v = activity?.let {
             val builder = AlertDialog.Builder(it)
             // Get the layout inflater
-            val inflater = requireActivity().layoutInflater;
+            val inflater = requireActivity().layoutInflater
 
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
             builder.setView(inflater.inflate(R.layout.test_dialog, null))
                 // Add action buttons
-                .setPositiveButton("In",
-                    DialogInterface.OnClickListener { dialog, id ->
-                        // sign in the user ...
-                    })
-                .setNegativeButton("Out",
-                    DialogInterface.OnClickListener { dialog, id ->
-                        getDialog().cancel()
-                    })
+                .setPositiveButton("Send"
+                ) { dialog, id ->
+                    // sign in the user ...
+                }
+                .setNegativeButton("Cancel"
+                ) { dialog, id ->
+                    getDialog().cancel()
+                }
+
             builder.create()
+
+
         } ?: throw IllegalStateException("Activity cannot be null")
+
+        val aa = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
+        val spin = v.findViewById<Spinner>(R.id.test_spinner)
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spin.onItemSelectedListener = this
+        spin.adapter = aa
+        return v
+    }*/
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        childFragmentManager
+            .beginTransaction()
+            .replace(R.id.Fragment,_frag_id[position])
+            .commit()
+
+        Toast.makeText(_context,_options[position],Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+        throw Exception("what the fuck")
     }
 
 }
