@@ -16,7 +16,7 @@ import android.support.v4.app.FragmentManager
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
 
-class MainActivity : AppCompatActivity(),WriteFragment.WriteListener {
+class MainActivity : AppCompatActivity(),SuperFragment.InputListener {
 
     //TODO: ask to turn on bluetooth
     private val _btAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(),WriteFragment.WriteListener {
             _btService.get(timeInterval, value)*/
             //if(!isFragmentLoaded)
             //    ShowFragment()
-            val testDialog = TestDialog()
+            val testDialog = `InputDialog.kt`()
             testDialog.show(_manager, "test")
         }
     }

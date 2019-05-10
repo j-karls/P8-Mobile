@@ -4,19 +4,16 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import kotlinx.android.synthetic.main.test_dialog.*
 import java.lang.Exception
 
-class TestDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
+class `InputDialog.kt` : DialogFragment(),AdapterView.OnItemSelectedListener {
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
-    private val _frag_id: Array<Fragment> = arrayOf(WriteFragment())
+    private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),TimeFragment())
     private var _context: Context? = null
     private val TAG: String = "DEBUG_DIALOG"
 
@@ -26,7 +23,7 @@ class TestDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.test_dialog,container,false)
+        val v = inflater.inflate(R.layout.input_dialog,container,false)
 
         val aa = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
         val spin = v.findViewById<Spinner>(R.id.test_spinner)
@@ -45,7 +42,7 @@ class TestDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
 
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
-            builder.setView(inflater.inflate(R.layout.test_dialog, null))
+            builder.setView(inflater.inflate(R.layout.input_dialog, null))
                 // Add action buttons
                 .setPositiveButton("Send"
                 ) { dialog, id ->
@@ -72,7 +69,7 @@ class TestDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         childFragmentManager
             .beginTransaction()
-            .replace(R.id.Fragment,_frag_id[position])
+            .replace(R.id.Fragment,_fragId[position])
             .commit()
 
         Toast.makeText(_context,_options[position],Toast.LENGTH_SHORT).show()
