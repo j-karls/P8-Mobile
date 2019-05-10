@@ -65,7 +65,7 @@ public:
   double convertRS(double analogValue) {
     double vrl = convertVRL(analogValue);
     return ((_vc * _rl) / vrl) - _rl; // rs is resistance over the sensor in Ohm
-  }
+  }   
   double convertPPM(double analogValue) {
     double rs = convertRS(analogValue);
     double rRatio = rs / _r0;
@@ -192,43 +192,43 @@ public:
 
 class SensorAM2302 : public Sensor {
 protected:
-  AM2302* localAM2302;
+  AM2302 _localAM2302;
+public:  
   double getRawValue() {
-    Serial.println("test1");
-    localAM2302->readHumidity();
-    Serial.println("test2 " + String(localAM2302->humidity));
-    localAM2302->readTemperature();
-    Serial.println("test3 " + String(localAM2302->temperature_C));
+    _localAM2302.readHumidity();
+    _localAM2302.readTemperature();
     return 0;    
   }
-public:
   int _numMeasurements = 0;
-  int _aggHumidity = 0;
-  int _aggTemperature = 0;
-  void calibrate() { /* no need to calibrate anything in particular */ }
+  float _aggHumidity = 0;
+  float _aggTemperature = 0;
+  void calibrate() { 
+    _localAM2302.begin();
+  }
   String getValue() {
-    int humidity = _aggHumidity/_numMeasurements;
-    int temperature = _aggTemperature/_numMeasurements;
+    float humidity = _aggHumidity/_numMeasurements;
+    float temperature = _aggTemperature/_numMeasurements;
     _aggHumidity = 0;
     _aggTemperature = 0;
     _numMeasurements = 0;
+    canGetNewValue = false;
     return String("humidity: " + String(humidity) + " %, Temperature: " + String(temperature) + " *C");
   }
-  SensorAM2302(int pinDigital) {
+  SensorAM2302(int pinDigital) : _localAM2302(pinDigital) {
     sensorName = String("AM2302");
-    AM2302 localAM2302 = AM2302(pinDigital);
+    //_localAM2302 = &AM2302(pinDigital);
     canGetNewValue = false;
   }
   void manageState(unsigned long currentTime) {
     
-    getRawValue();
+    getRawValue(); // populates the ".humidity" and ".temperature_C" fields
     
-    if (isnan(localAM2302->humidity) || isnan(localAM2302->temperature_C)) {
+    if (isnan(_localAM2302.humidity) || isnan(_localAM2302.temperature_C)) {
       return;
     }
     else {
-      _aggHumidity += localAM2302->humidity;
-      _aggTemperature += localAM2302->temperature_C;
+      _aggHumidity += _localAM2302.humidity;
+      _aggTemperature += _localAM2302.temperature_C;
       _numMeasurements++;    
     }
     
@@ -286,6 +286,7 @@ SensorMQ7 sensorMQ7 = SensorMQ7(A3, 8, A0);
 SensorMQ135 sensorMQ135 = SensorMQ135(A4, 7, A1);
 SensorAM2302 sensorAM2302 = SensorAM2302(12);
 
+
 unsigned long startTime;
 unsigned long currentTime;
 
@@ -318,7 +319,7 @@ void loop()
   // Serial.println("------------------------");
 
   // Manage state
-  // sensorMQ7.manageStateOnlyHeating(currentTime);
+  sensorMQ7.manageStateOnlyHeating(currentTime);
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
 }
