@@ -10,7 +10,11 @@ import android.view.ViewGroup
 import android.widget.*
 import java.lang.Exception
 
-class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
+class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFragment.InputListener {
+
+    override fun onButtonClick(text: String) {
+        Toast.makeText(_context,"FUCK",Toast.LENGTH_SHORT).show()
+    }
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
     private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),TimeFragment())
@@ -23,14 +27,14 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.input_dialog,container,false)
+        val view = inflater.inflate(R.layout.input_dialog,container,false)
 
-        val aa = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
-        val spin = v.findViewById<Spinner>(R.id.test_spinner)
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spin.onItemSelectedListener = this
-        spin.adapter = aa
-        return v
+        val arrayAdapter = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
+        val spinner = view.findViewById<Spinner>(R.id.test_spinner)
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.onItemSelectedListener = this
+        spinner.adapter = arrayAdapter
+        return view
     }
 
     //unused

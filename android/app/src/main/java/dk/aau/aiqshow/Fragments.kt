@@ -4,25 +4,35 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.content.Context
 import android.widget.Button
 import kotlinx.android.synthetic.main.time_fragment.*
 
 
 open class SuperFragment : Fragment() {
-    protected var activityCallback: InputListener? = null
+    protected var callback: InputListener? = null
 
     interface InputListener {
         fun onButtonClick(text: String)
     }
 
-    override fun onAttach(context: Context?) {
+    /*override fun onAttach(context: Context?) {
         super.onAttach(context)
         try {
-            activityCallback = context as InputListener
+            callback = context as InputListener
         } catch (e: ClassCastException) {
             throw ClassCastException(context?.toString()
-                    + " must implement ToolbarListener")
+                    + " must implement InputListener")
+        }
+    }*/
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        try {
+            callback = parentFragment as InputListener
+        } catch (e: ClassCastException) {
+            throw ClassCastException(context?.toString() + " " + e.toString() + " "
+                    + " must implement InputListener")
         }
     }
 }
@@ -40,7 +50,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun buttonClicked(view: View) {
-        activityCallback?.onButtonClick(testButton.text.toString())
+        callback?.onButtonClick(testButton.text.toString())
     }
 
 }
@@ -59,7 +69,7 @@ class TimeIntervalFragment : SuperFragment() {
 
 
     private fun buttonClicked(view: View) {
-        activityCallback?.onButtonClick(testButton.text.toString())
+        callback?.onButtonClick(testButton.text.toString())
     }
 
 }
