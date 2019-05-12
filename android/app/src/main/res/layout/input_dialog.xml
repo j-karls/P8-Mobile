@@ -12,15 +12,32 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:id="@+id/Fragment"
-            android:layout_margin="5dp"/>
-    <Button
-            android:id="@+id/testButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="17dp"
-            android:textAllCaps="false"
-            android:text="Something"
-            android:layout_gravity="center_horizontal"
+            android:layout_margin="5dp"
     />
+    <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  style="?android:attr/buttonBarStyle">
+        <Button
+                style="?android:attr/buttonBarStyle"
+                android:clickable="true"
+                android:id="@+id/cancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Cancel"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="50"
+        />
+        <Button
+                style="?android:attr/buttonBarStyle"
+                android:clickable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/sendButton"
+                android:text="Send"
+                android:textAllCaps="false"
+                android:layout_weight="50"
+        />
+    </LinearLayout>
+
 </LinearLayout>

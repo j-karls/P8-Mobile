@@ -12,18 +12,8 @@ open class SuperFragment : Fragment() {
     protected var callback: InputListener? = null
 
     interface InputListener {
-        fun onButtonClick(text: String)
+        fun onItemChange(text: String)
     }
-
-    /*override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        try {
-            callback = context as InputListener
-        } catch (e: ClassCastException) {
-            throw ClassCastException(context?.toString()
-                    + " must implement InputListener")
-        }
-    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +40,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun buttonClicked(view: View) {
-        callback?.onButtonClick(testButton.text.toString())
+        callback?.onItemChange(testButton.text.toString())
     }
 
 }
@@ -69,7 +59,7 @@ class TimeIntervalFragment : SuperFragment() {
 
 
     private fun buttonClicked(view: View) {
-        callback?.onButtonClick(testButton.text.toString())
+        callback?.onItemChange(testButton.text.toString())
     }
 
 }

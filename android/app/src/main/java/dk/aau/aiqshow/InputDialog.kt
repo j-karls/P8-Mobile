@@ -12,8 +12,9 @@ import java.lang.Exception
 
 class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFragment.InputListener {
 
-    override fun onButtonClick(text: String) {
-        Toast.makeText(_context,"FUCK",Toast.LENGTH_SHORT).show()
+    interface DialogListener {
+        fun onCancel()
+        fun onSend(text: String)
     }
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
@@ -34,53 +35,30 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFra
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.onItemSelectedListener = this
         spinner.adapter = arrayAdapter
+        val cButton = view.findViewById<Button>(R.id.cancelButton)
+        val sButton = view.findViewById<Button>(R.id.sendButton)
+        cButton.setOnClickListener { v:View -> dialog.cancel() }
+        sButton.setOnClickListener { v:View -> send() }
         return view
     }
 
-    //unused
-    /*override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val v = activity?.let {
-            val builder = AlertDialog.Builder(it)
-            // Get the layout inflater
-            val inflater = requireActivity().layoutInflater
-
-            // Inflate and set the layout for the dialog
-            // Pass null as the parent view because its going in the dialog layout
-            builder.setView(inflater.inflate(R.layout.input_dialog, null))
-                // Add action buttons
-                .setPositiveButton("Send"
-                ) { dialog, id ->
-                    // sign in the user ...
-                }
-                .setNegativeButton("Cancel"
-                ) { dialog, id ->
-                    getDialog().cancel()
-                }
-
-            builder.create()
-
-
-        } ?: throw IllegalStateException("Activity cannot be null")
-
-        val aa = ArrayAdapter(_context!!, android.R.layout.simple_spinner_item, _options)
-        val spin = v.findViewById<Spinner>(R.id.test_spinner)
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spin.onItemSelectedListener = this
-        spin.adapter = aa
-        return v
-    }*/
+    fun send() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         childFragmentManager
             .beginTransaction()
             .replace(R.id.Fragment,_fragId[position])
             .commit()
-
-        Toast.makeText(_context,_options[position],Toast.LENGTH_SHORT).show()
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
-        throw Exception("what the fuck")
+        throw Exception("_option array is empty")
+    }
+
+    override fun onItemChange(text: String) {
+        Toast.makeText(_context,text,Toast.LENGTH_SHORT).show()
     }
 
 }
