@@ -18,7 +18,7 @@ import java.util.*
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
-private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
+private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:hh.mm.ss")
 
 // Defines several constants used when transmitting messages between the
 // service and the UI.
