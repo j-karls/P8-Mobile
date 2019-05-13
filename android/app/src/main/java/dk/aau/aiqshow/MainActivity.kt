@@ -16,14 +16,10 @@ import android.support.v4.app.FragmentManager
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
 
-class MainActivity : AppCompatActivity(), InputDialog.DialogListener {
-
-    override fun onCancel() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
     override fun onSend(text: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        _btService.get(text)
     }
 
     //TODO: ask to turn on bluetooth

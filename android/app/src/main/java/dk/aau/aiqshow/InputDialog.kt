@@ -10,12 +10,8 @@ import android.view.ViewGroup
 import android.widget.*
 import java.lang.Exception
 
-class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFragment.InputListener {
+class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener, SuperFragment.DialogListener {
 
-    interface DialogListener {
-        fun onCancel()
-        fun onSend(text: String)
-    }
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
     private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),TimeFragment())
@@ -35,15 +31,7 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFra
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.onItemSelectedListener = this
         spinner.adapter = arrayAdapter
-        val cButton = view.findViewById<Button>(R.id.cancelButton)
-        val sButton = view.findViewById<Button>(R.id.sendButton)
-        cButton.setOnClickListener { v:View -> dialog.cancel() }
-        sButton.setOnClickListener { v:View -> send() }
         return view
-    }
-
-    fun send() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -57,8 +45,8 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener,SuperFra
         throw Exception("_option array is empty")
     }
 
-    override fun onItemChange(text: String) {
-        Toast.makeText(_context,text,Toast.LENGTH_SHORT).show()
+    override fun onEnd() {
+        dialog.cancel()
     }
 
 }

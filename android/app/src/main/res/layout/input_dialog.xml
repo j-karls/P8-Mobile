@@ -1,9 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:layout_width="wrap_content"
+              android:layout_width="150dp"
               android:layout_height="wrap_content">
     <Spinner
-            android:layout_width="150dp"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:id="@+id/test_spinner"
             android:spinnerMode="dialog"
@@ -14,30 +14,4 @@
             android:id="@+id/Fragment"
             android:layout_margin="5dp"
     />
-    <LinearLayout android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  style="?android:attr/buttonBarStyle">
-        <Button
-                style="?android:attr/buttonBarStyle"
-                android:clickable="true"
-                android:id="@+id/cancelButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAllCaps="false"
-                android:text="Cancel"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="50"
-        />
-        <Button
-                style="?android:attr/buttonBarStyle"
-                android:clickable="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/sendButton"
-                android:text="Send"
-                android:textAllCaps="false"
-                android:layout_weight="50"
-        />
-    </LinearLayout>
-
 </LinearLayout>

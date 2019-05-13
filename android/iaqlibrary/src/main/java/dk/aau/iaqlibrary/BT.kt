@@ -18,6 +18,7 @@ import java.util.*
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
+private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
 
 // Defines several constants used when transmitting messages between the
 // service and the UI.
@@ -35,8 +36,6 @@ class MyBluetoothService(
     // optional UUID
     uuid : UUID? = null,
     device: BluetoothDevice) {
-
-    private val formatter = DateTimeFormatter.ofPattern("dd-mm-yyyy:hh.mm.ss")
     private val mmSocket: BluetoothSocket =
         try {Log.i(TAG,device.name)
             device.createRfcommSocketToServiceRecord(uuid)}
@@ -188,29 +187,6 @@ class MyBluetoothService(
         else throw IllegalArgumentException("args cannot be empty")
     }
 
-    fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
-        val fromDate = from.format(formatter)
-        val toDate = to.format(formatter)
-        return ("$gasType time $fromDate to $toDate")
-    }
-
-    fun getTime(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) : String {
-        val timeDate = time.format(formatter)
-        return ("$gasType time $compare $timeDate")
-    }
-
-    fun getValue(gasType: String, compare: String = ">", value: Float = 0f) : String {
-        return ("$gasType value $compare $value")
-    }
-
-    fun getAlerts(gasType: String, alertType: String = "predicted"): String {
-        return ("$gasType alerts = $alertType")
-    }
-
-    fun getStatus(gasType: String): String {
-        return ("$gasType status")
-    }
-
     fun set(vararg args: String) {
         if (args.isNotEmpty()) {
             val str = args.foldRight("") {currentValue, result -> "$currentValue & $result" }.dropLast(3)
@@ -219,11 +195,43 @@ class MyBluetoothService(
         else throw IllegalArgumentException("args cannot be empty")
     }
 
-    fun setGuidelines(guideline: String = "WHO") : String {
-        return ("guideline $guideline")
-    }
+    companion object {
+        fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
+            val fromDate = from.format(formatter)
+            val toDate = to.format(formatter)
+            return ("$gasType time $fromDate to $toDate")
+        }
 
-    fun dateTimeFormatter(time: LocalDateTime) : String {
-        return time.format(formatter)
+        fun getTime(gasType: String, compare: String, time: LocalDateTime = LocalDateTime.now()) : String {
+            val timeDate = time.format(formatter)
+            return ("$gasType time $compare $timeDate")
+        }
+
+        fun getValue(gasType: String, compare: String = ">", value: Float = 0f) : String {
+            return ("$gasType value $compare $value")
+        }
+
+        fun getAlerts(gasType: String, alertType: String = "predicted"): String {
+            return ("$gasType alerts = $alertType")
+        }
+
+        fun getStatus(gasType: String): String {
+            return ("$gasType status")
+        }
+
+
+
+        fun setGuidelines(guideline: String = "WHO") : String {
+            return ("guideline $guideline")
+        }
+
+        fun dateTimeFormatter(time: LocalDateTime) : String {
+            return time.format(formatter)
+        }
     }
 }
+
+
+
+
+
