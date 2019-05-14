@@ -37,6 +37,19 @@ protected:
   double _rl; // load resistance in Ohm
   double _vc = 5; // control voltage in Volt
 
+  // variables for humidity correction, gained by using polynomial regression on the two functions in the datasheet
+  // "pink" and "blue" are the colors of those two functions
+  double _aPink; 
+  double _bPink;
+  double _cPink;
+  double _aBlue;
+  double _bBlue;
+  double _cBlue;
+  double _rhPink = 85;
+  double _rhBlue = 33;
+  double _temp = 20; // temperature in degrees celcius
+  double _rh = 33; // relative humidity percentage
+
   int _numMeasurements = 0;
   double _aggregatedValue = 0;
 public:
@@ -51,7 +64,11 @@ public:
     canGetNewValue = false;
     _cycleStartTime = 0;
   }
-  void calibrate() { /* no need to calibrate anything in particular */ } 
+  void calibrate() { /* no need to calibrate anything in particular */ }
+  void setTemperatureHumidity(double temp, double rh) {
+    _temp = temp;
+    _rh = rh;
+  }
   void performAggregation(double newValue) {
     _aggregatedValue += newValue;
     _numMeasurements++;
@@ -62,18 +79,32 @@ public:
     // voltage over the load resistor in Volt: basically, the "output" voltage of the circuit, 
     // multiplied with 5, as it is the maximum voltage that can be returned by the arduino
   }
-  double convertRS(double analogValue) {
-    double vrl = convertVRL(analogValue);
+  double convertRS(double vrl) {
     return ((_vc * _rl) / vrl) - _rl; // rs is resistance over the sensor in Ohm
-  }   
+  }
+  double convertCorrectedRRatio(double rRatio, double temp, double rh) {
+    double rrPink = _aPink * pow(temp, 2) + _bPink * temp + _cPink;
+    double rrBlue = _aBlue * pow(temp, 2) + _bBlue * temp + _cBlue;
+    double rrDiff = rrBlue - rrPink;
+    double rhDiff = _rhBlue - _rhPink;
+    double constPerRH = rrDiff / rhDiff;
+    double htFactor = constPerRH * (rh - _rhPink) + rrPink;
+    
+    Serial.println(htFactor);
+
+    return rRatio * htFactor;
+  }
   double convertPPM(double analogValue) {
-    double rs = convertRS(analogValue);
+    double vrl = convertVRL(analogValue);
+    double rs = convertRS(vrl);
     double rRatio = rs / _r0;
+    double cRRatio = convertCorrectedRRatio(rRatio, _temp, _rh);
     // Serial.println(String(analogValue, 4));
     // Serial.println(String(rs, 4));
     // Serial.println(String(rRatio, 4));
     // Serial.println(String((pow((_funcConstantA / rRatio), (1 / -_funcConstantB))), 4));
-    return pow((rRatio / _funcConstantA), (1 / _funcConstantB)); // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
+    return pow((cRRatio / _funcConstantA), (1 / _funcConstantB)); 
+    // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
   }
   double getRawValue() {
     return analogRead(_pinData);
@@ -115,9 +146,15 @@ public:
     _funcConstantA = 0.8494;
     _funcConstantB = -0.5455;
     _rl = 10000;
-    _r0 = (convertRS(_analogMeasurementFresh)) / _rRatioFresh;
+    _r0 = (convertRS(convertVRL(_analogMeasurementFresh))) / _rRatioFresh;
     _coolPWM = 71; // set to 1.4V (71 of 255 duty cycle equals 1.4 V PWM on average)
     _heatPWM = 255; // set to 5V (meaning PWM always on)
+    _aPink = 0.000102;
+    _bPink = -0.011;
+    _cPink = 1.044;
+    _aBlue = 0.0002475;
+    _bBlue = -0.017;
+    _cBlue = 1.23;
   }
   void manageState(unsigned long currentTime) {
     if (_cycleStartTime == 0) { // if we have not yet started a cycle
@@ -168,9 +205,15 @@ public:
     _funcConstantA = 5.1633;
     _funcConstantB = -0.3495;
     _rl = 20000;
-    _r0 = (convertRS(_analogMeasurementFresh)) / _rRatioFresh;
+    _r0 = (convertRS(convertVRL(_analogMeasurementFresh))) / _rRatioFresh;
     _coolPWM = 0; // shut off completely
     _heatPWM = 255; // set to 5V (meaning PWM always on)
+    _aPink = 0.0003051;
+    _bPink = -0.024;
+    _cPink = 1.272;
+    _aBlue = 0.0003384;
+    _bBlue = -0.027;
+    _cBlue = 1.399;
   }
   void manageState(unsigned long currentTime) {
     if (_cycleStartTime == 0) { // if we have not yet started a cycle
@@ -212,11 +255,11 @@ public:
     _aggTemperature = 0;
     _numMeasurements = 0;
     canGetNewValue = false;
-    return String("humidity: " + String(humidity) + " %, Temperature: " + String(temperature) + " *C");
+    // return String("humidity: " + String(humidity) + " %, Temperature: " + String(temperature) + " *C");
+    return String(String(humidity) + "|" + String(temperature));
   }
   SensorAM2302(int pinDigital) : _localAM2302(pinDigital) {
     sensorName = String("AM2302");
-    //_localAM2302 = &AM2302(pinDigital);
     canGetNewValue = false;
   }
   void manageState(unsigned long currentTime) {
@@ -237,9 +280,6 @@ public:
     }
   }
 };
-
-
-
 
 class Diode {
 private: 
@@ -275,7 +315,11 @@ void delaySec(int sec)
 }
 
 void serialPrintResult(Sensor *sensor) {
-  Serial.println(String(sensor->sensorName + String('|') + sensor->getValue()));
+  Serial.println(String(sensor->sensorName + "|" + sensor->getValue()));
+}
+
+void serialPrintResult(Sensor *sensor, String sensorValue) {
+  Serial.println(String(sensor->sensorName + "|" + sensorValue));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +329,6 @@ Diode diode = Diode(13);
 SensorMQ7 sensorMQ7 = SensorMQ7(A3, 8, A0);
 SensorMQ135 sensorMQ135 = SensorMQ135(A4, 7, A1);
 SensorAM2302 sensorAM2302 = SensorAM2302(12);
-
 
 unsigned long startTime;
 unsigned long currentTime;
@@ -307,21 +350,25 @@ void loop()
   // Get new value
   if (sensorMQ7.canGetNewValue) {
     serialPrintResult(&sensorMQ7);
-    //Serial.println(sensorMQ7.getRawValue());
   }
   if (sensorMQ135.canGetNewValue) {
     serialPrintResult(&sensorMQ135);
   }
   if (sensorAM2302.canGetNewValue) {
-    serialPrintResult(&sensorAM2302);
+    String val = sensorAM2302.getValue();
+    int delimiter = val.indexOf("|");
+    double hum = val.substring(0, delimiter).toDouble(); 
+    double temp = val.substring(delimiter + 1).toDouble();
+    serialPrintResult(&sensorAM2302, String("RH%:" + String(hum) + "|" + "Temp°C:" + String(temp)));
+    sensorMQ7.setTemperatureHumidity(temp, hum);
+    sensorMQ135.setTemperatureHumidity(temp, hum);
   }
-  
-  // Serial.println("------------------------");
 
   // Manage state
   sensorMQ7.manageStateOnlyHeating(currentTime);
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
+  Serial.println(sensorMQ135.getRawValue());
 }
 
 
