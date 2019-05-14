@@ -19,7 +19,7 @@ import java.time.LocalTime
 open class SuperFragment : Fragment() {
     protected lateinit var callback: DialogListener
     protected lateinit var activityCallback: InputListener
-    protected val _gasArray = arrayOf("CO","CO2","NO2","Humidity","Temperature")
+    protected val _gasArray = arrayOf("CO","CO2","Humidity","Temperature")
     protected val _compArray = arrayOf("=",">","<")
     protected val _alertArray = arrayOf("predicted", "immediate")
     protected val TAG : String = "DEBUG_FRAGMENTS"
@@ -71,14 +71,14 @@ class TimeIntervalFragment : SuperFragment() {
         _gas = view.findViewById(R.id.TimeIntervalFragmentGas)
         _gas.adapter = gasArrayAdapter
 
-        val datePickerFrom = DatePickerDialog(context!!)
+        val datePickerFrom = DatePickerDialog(context!!,R.style.DialogTheme)
         datePickerFrom.setOnDateSetListener(_dateListenerFrom)
-        _timePickerFrom = TimePickerDialog(context!!,1,_dateListenerFrom,timeNow.hour,timeNow.minute,true)
+        _timePickerFrom = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerFrom,timeNow.hour,timeNow.minute,true)
         _dateListenerFrom.stuff(_timePickerFrom)
 
-        val datePickerTo = DatePickerDialog(context!!)
+        val datePickerTo = DatePickerDialog(context!!,R.style.DialogTheme)
         datePickerTo.setOnDateSetListener(_dateListenerTo)
-        _timePickerTo = TimePickerDialog(context!!,1,_dateListenerTo,timeNow.hour,timeNow.minute,true)
+        _timePickerTo = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerTo,timeNow.hour,timeNow.minute,true)
         _dateListenerTo.stuff(_timePickerTo)
 
 
@@ -120,9 +120,9 @@ class TimeFragment : SuperFragment() {
         _comp = view.findViewById(R.id.TimeFragmentComparator)
         _comp.adapter = comparatorArrayAdapter
 
-        val datePicker = DatePickerDialog(context!!)
+        val datePicker = DatePickerDialog(context!!,R.style.DialogTheme)
         datePicker.setOnDateSetListener(_dateListener)
-        _time = TimePickerDialog(context!!,1,_dateListener,timeNow.hour,timeNow.minute, true)
+        _time = TimePickerDialog(context!!,R.style.DialogTheme,_dateListener,timeNow.hour,timeNow.minute, true)
         _dateListener.stuff(_time)
 
         view.findViewById<Button>(R.id.TimeFragmentTime).setOnClickListener { datePicker.show() }
