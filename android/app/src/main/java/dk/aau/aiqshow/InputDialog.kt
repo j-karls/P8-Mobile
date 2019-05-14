@@ -14,7 +14,8 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener, SuperFr
 
 
     private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Status", "Alert")
-    private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),TimeFragment())
+    private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),
+        TimeFragment(), ValueFragment(), AlertFragment(), StatusFragment())
     private var _context: Context? = null
     private val TAG: String = "DEBUG_DIALOG"
 
