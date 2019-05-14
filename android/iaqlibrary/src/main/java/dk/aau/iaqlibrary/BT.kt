@@ -18,7 +18,7 @@ import java.util.*
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
-private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:hh.mm.ss")
+private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:HH.mm.ss")
 
 // Defines several constants used when transmitting messages between the
 // service and the UI.
@@ -37,13 +37,10 @@ class MyBluetoothService(
     uuid : UUID? = null,
     device: BluetoothDevice) {
     private val mmSocket: BluetoothSocket =
-        try {Log.i(TAG,device.name)
-            device.createRfcommSocketToServiceRecord(uuid)}
-        catch (e: Exception) { Log.e(TAG,e.toString())
-            try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
+            try {device.javaClass.getMethod("createInsecureRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
             catch (e: Exception) {Log.e(TAG, e.toString())
-                throw Exception("No bluetooth connection could be created")}}
+                throw Exception("No bluetooth connection could be created")}
 
     private inner class CommThread : Thread() {
 
@@ -129,11 +126,14 @@ class MyBluetoothService(
 
         override fun run() {
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
-
+            try {
             mmSocket.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
                 socket.connect()
+            } }
+            catch (e: Exception) {
+                Log.e(TAG,e.toString())
             }
         }
 
@@ -148,19 +148,19 @@ class MyBluetoothService(
     }
 
     fun connect() {
-        try {
-            if (mmSocket.isConnected) {
-                ConnectThread().start()}
-            else{
-                handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
-                throw Exception("Socket cannot be connected")
-            }
+        try { ConnectThread().start() }
+        catch (e : Exception) {
+            Log.e(TAG, e.message)
+        handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
+        throw Exception("Socket cannot be connected")
+        }
+        Thread.sleep(500)
+        Log.i(TAG,mmSocket.isConnected.toString())
+        if (mmSocket.isConnected) {
             CommThread().start()
             handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
         }
-        catch (e : Exception) {
-            Log.e(TAG, e.message)
-        }
+
     }
 
     fun disconnect() {
@@ -218,8 +218,6 @@ class MyBluetoothService(
         fun getStatus(gasType: String): String {
             return ("$gasType status")
         }
-
-
 
         fun setGuidelines(guideline: String = "WHO") : String {
             return ("guideline $guideline")

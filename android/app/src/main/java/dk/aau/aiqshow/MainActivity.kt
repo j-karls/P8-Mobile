@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
 import java.util.*
 import android.support.v4.app.FragmentManager
+import android.widget.Toast
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
@@ -19,6 +20,7 @@ private const val TAG = "MAIN_ACTIVITY_DEBUG"
 class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
     override fun onSend(text: String) {
+        mainText.text = text
         _btService.get(text)
     }
 
@@ -56,10 +58,9 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         setContentView(R.layout.activity_main)
 
         buttonConnect.setOnClickListener {
-            val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
+            /*val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
             val device = pairedDevices?.find { it.name.contains("CreamPi") } ?: _device
-            _btService = MyBluetoothService(_handler,device = device)
-
+            _btService = MyBluetoothService(_handler,device = device)*/
             _btService.connect()
         }
 

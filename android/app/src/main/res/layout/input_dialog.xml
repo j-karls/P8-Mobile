@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:layout_width="150dp"
+              android:layout_width="300dp"
               android:layout_height="wrap_content">
     <Spinner
             android:layout_width="match_parent"
@@ -10,7 +10,7 @@
     />
     <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:id="@+id/Fragment"
             android:layout_margin="5dp"
     />

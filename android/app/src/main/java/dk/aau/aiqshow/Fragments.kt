@@ -1,14 +1,19 @@
 package dk.aau.aiqshow
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Bundle
+import android.support.v4.app.DialogFragment
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import dk.aau.iaqlibrary.MyBluetoothService
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 
 open class SuperFragment : Fragment() {
@@ -17,6 +22,7 @@ open class SuperFragment : Fragment() {
     protected val _gasArray = arrayOf("CO","CO2","NO2","Humidity","Temperature")
     protected val _compArray = arrayOf("=",">","<")
     protected val _alertArray = arrayOf("predicted", "immediate")
+    protected val TAG : String = "DEBUG_FRAGMENTS"
 
     interface InputListener {
         fun onSend(text: String)
@@ -49,8 +55,12 @@ open class SuperFragment : Fragment() {
 class TimeIntervalFragment : SuperFragment() {
 
     private lateinit var _gas : Spinner
-    private lateinit var time1: TimePicker
-    private lateinit var time2: TimePicker
+    private lateinit var _timePickerFrom : TimePickerDialog
+    private lateinit var _timePickerTo : TimePickerDialog
+    private val _dateListenerFrom = DateTimePicker()
+    private val _dateListenerTo = DateTimePicker()
+
+    private val timeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -61,26 +71,40 @@ class TimeIntervalFragment : SuperFragment() {
         _gas = view.findViewById(R.id.TimeIntervalFragmentGas)
         _gas.adapter = gasArrayAdapter
 
+        val datePickerFrom = DatePickerDialog(context!!)
+        datePickerFrom.setOnDateSetListener(_dateListenerFrom)
+        _timePickerFrom = TimePickerDialog(context!!,1,_dateListenerFrom,timeNow.hour,timeNow.minute,true)
+        _dateListenerFrom.stuff(_timePickerFrom)
+
+        val datePickerTo = DatePickerDialog(context!!)
+        datePickerTo.setOnDateSetListener(_dateListenerTo)
+        _timePickerTo = TimePickerDialog(context!!,1,_dateListenerTo,timeNow.hour,timeNow.minute,true)
+        _dateListenerTo.stuff(_timePickerTo)
+
+
+        view.findViewById<Button>(R.id.TimeIntervalFragmentFrom).setOnClickListener { datePickerFrom.show() }
+        view.findViewById<Button>(R.id.TimeIntervalFragmentTo).setOnClickListener { datePickerTo.show() }
         view.findViewById<Button>(R.id.TimeIntervalFragmentPosBut).setOnClickListener { send() }
-        view.findViewById<Button>(R.id.TimeIntervalFragmentPosBut).setOnClickListener { callback.onEnd() }
+        view.findViewById<Button>(R.id.TimeIntervalFragmentNegBut).setOnClickListener { callback.onEnd() }
 
         return view
     }
 
 
     private fun send() {
-        val message: String = MyBluetoothService.getTimeInterval(_gas.selectedItem.toString(), LocalDateTime.now().minusMinutes(5L),
-            LocalDateTime.now())
+        val message: String = MyBluetoothService.getTimeInterval(_gas.selectedItem.toString(), _dateListenerFrom.getTime(),
+            _dateListenerTo.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
     }
-
 }
 
 class TimeFragment : SuperFragment() {
     private lateinit var _gas : Spinner
     private lateinit var _comp : Spinner
-    private lateinit var _time : TimePicker
+    private lateinit var _time : TimePickerDialog
+    private val _dateListener = DateTimePicker()
+    private val timeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -96,8 +120,12 @@ class TimeFragment : SuperFragment() {
         _comp = view.findViewById(R.id.TimeFragmentComparator)
         _comp.adapter = comparatorArrayAdapter
 
-        //TODO(NEED DIALOG FOR DATETIME)
+        val datePicker = DatePickerDialog(context!!)
+        datePicker.setOnDateSetListener(_dateListener)
+        _time = TimePickerDialog(context!!,1,_dateListener,timeNow.hour,timeNow.minute, true)
+        _dateListener.stuff(_time)
 
+        view.findViewById<Button>(R.id.TimeFragmentTime).setOnClickListener { datePicker.show() }
         view.findViewById<Button>(R.id.TimeFragmentPosBut).setOnClickListener { send() }
         view.findViewById<Button>(R.id.TimeFragmentNegBut).setOnClickListener { callback.onEnd() }
 
@@ -105,7 +133,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getTime(_gas.selectedItem.toString(),_comp.selectedItem.toString())
+        val message: String = MyBluetoothService.getTime(_gas.selectedItem.toString(),_comp.selectedItem.toString(),_dateListener.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
     }
@@ -141,10 +169,11 @@ class ValueFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getValue(
-            _gas.selectedItem.toString(),
-            _comp.selectedItem.toString(),
-            _value.text.toString().toFloat())
+        val gas = _gas.selectedItem.toString()
+        val comp = _comp.selectedItem.toString()
+        val value: Float = if (_value.text.toString().isNotEmpty()) _value.text.toString().toFloat() else 0F
+
+        val message: String = MyBluetoothService.getValue(gas,comp,value)
 
         activityCallback.onSend(message)
         callback.onEnd()
@@ -213,4 +242,33 @@ class StatusFragment : SuperFragment() {
         callback.onEnd()
     }
 
+}
+
+class DateTimePicker : DialogFragment(), DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+    private var _year : Int = 1970
+    private var _month : Int = 1
+    private var _day : Int = 1
+    private var _hour : Int = 1
+    private var _minute : Int = 1
+    private lateinit var _tp : TimePickerDialog
+
+    override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+        _year = year
+        _month = month
+        _day = dayOfMonth
+        _tp.show()
+    }
+
+    override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
+        _hour = hourOfDay
+        _minute = minute
+    }
+
+    fun getTime() : LocalDateTime {
+        return LocalDateTime.of(LocalDate.of(_year,_month,_day), LocalTime.of(_hour,_minute))
+    }
+
+    fun stuff(tp : TimePickerDialog) {
+        _tp = tp
+    }
 }
