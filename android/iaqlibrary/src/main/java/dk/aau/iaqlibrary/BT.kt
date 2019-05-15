@@ -27,26 +27,30 @@ const val MESSAGE_ERROR: Int = 5
 
 class MyBluetoothService( private val handler: Handler, device: BluetoothDevice) {
 
-    private val mmSocket: BluetoothSocket =
-            try {device.javaClass.getMethod("createInsecureRfcommSocket", (Int::class.javaPrimitiveType))
+    private val _socket: BluetoothSocket =
+            try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
             catch (e: Exception) {Log.e(TAG, e.toString())
                 throw Exception("No bluetooth connection could be created")}
 
     private inner class CommThread : Thread() {
 
-        private val mmInStream: InputStream = mmSocket.inputStream
-        private val mmOutStream: OutputStream = mmSocket.outputStream
-        private val mmBuffer: ByteArray = ByteArray(1024) // mmBuffer store for the stream
+        private val _inStream: InputStream = _socket.inputStream
+        private val _outStream: OutputStream = _socket.outputStream
+        private val _buffer: ByteArray = ByteArray(1024) // _buffer store for the stream
 
         override fun run() {
+            if (_socket.isConnected)
+                Log.i(TAG,"YES")
+            else
+                Log.i(TAG,"FUCK")
             var numBytes: Int // bytes returned from read()
 
             // Keep listening to the InputStream until an exception occurs.
             while (true) {
                 // Read from the InputStream.
                 numBytes = try {
-                    mmInStream.read(mmBuffer)
+                    _inStream.read(_buffer)
                 } catch (e: IOException) {
                     Log.d(TAG, "Input stream disconnected", e)
                     break
@@ -54,7 +58,7 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
                 //TODO: preface responses from pi with code, put in arg2
 
                 // Convert the message to String s.t. the intention of the message can be understood
-                val message = mmBuffer.toString(Charset.defaultCharset())
+                val message = _buffer.toString(Charset.defaultCharset())
 
                 var readMsg: Message?
 
@@ -82,7 +86,7 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
 
         fun write(bytes: ByteArray) {
             try {
-                mmOutStream.write(bytes)
+                _outStream.write(bytes)
             } catch (e: IOException) {
                 Log.e(TAG, "Error occurred when sending data", e)
 
@@ -96,13 +100,13 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
             }
 
             val writtenMsg = handler.obtainMessage(
-                MESSAGE_WRITE, -1, -1, mmBuffer.toString(Charset.defaultCharset()))
+                MESSAGE_WRITE, -1, -1, _buffer.toString(Charset.defaultCharset()))
             writtenMsg.sendToTarget()
         }
 
         fun cancel() {
             try {
-                mmSocket.close()
+                _socket.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the connect socket", e)
             }
@@ -114,7 +118,7 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
         override fun run() {
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
             try {
-                mmSocket.use { socket ->
+                _socket.use { socket ->
                     socket.connect()
                 }
             }
@@ -125,7 +129,7 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
 
         fun cancel() {
             try {
-                mmSocket.close()
+                _socket.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Could not close the client socket", e)
             }
@@ -145,20 +149,17 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
         handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
         throw Exception("Socket cannot be connected")
         }
-        if (mmSocket.isConnected) {
-            Thread.sleep(500)
-            CommThread().start()
-            handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
-            return
-        }
-        handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
-        return
+        Thread.sleep(200)
+        Log.i(TAG,_socket.remoteDevice.name)
+        CommThread().start()
     }
 
     fun disconnect() {
         try {
+            CommThread().interrupt()
             CommThread().cancel()
             Thread.sleep(200)
+            ConnectThread().interrupt()
             ConnectThread().cancel()
         }
         catch (e : Exception) {

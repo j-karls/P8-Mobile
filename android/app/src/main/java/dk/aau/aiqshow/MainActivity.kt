@@ -57,10 +57,11 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         _device = _btAdapter.getRemoteDevice(_deviceAddress)
         val pairedDevices: Set<BluetoothDevice>? = _btAdapter.bondedDevices
         val device = pairedDevices?.find { it.name.contains("Beacon 1") } ?: _device
-        _btService = MyBluetoothService(_handler,device = device)
+
 
 
         buttonConnect.setOnClickListener {
+            _btService = MyBluetoothService(_handler,device = device)
             _btService.connect()
         }
 
