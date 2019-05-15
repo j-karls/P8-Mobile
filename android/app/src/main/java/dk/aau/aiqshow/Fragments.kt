@@ -17,12 +17,12 @@ import java.time.LocalTime
 
 
 open class SuperFragment : Fragment() {
-    protected lateinit var callback: DialogListener
-    protected lateinit var activityCallback: InputListener
+
     protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
     protected val compArray = arrayOf("=",">","<")
     protected val alertArray = arrayOf("predicted", "immediate")
-    protected val TAG : String = "DEBUG_FRAGMENTS"
+    protected lateinit var callback: DialogListener
+    protected lateinit var activityCallback: InputListener
 
     interface InputListener {
         fun onSend(text: String)
@@ -74,12 +74,12 @@ class TimeIntervalFragment : SuperFragment() {
         val datePickerFrom = DatePickerDialog(context!!,R.style.DialogTheme)
         datePickerFrom.setOnDateSetListener(_dateListenerFrom)
         _timePickerFrom = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerFrom,timeNow.hour,timeNow.minute,true)
-        _dateListenerFrom.stuff(_timePickerFrom)
+        _dateListenerFrom.setTimePicker(_timePickerFrom)
 
         val datePickerTo = DatePickerDialog(context!!,R.style.DialogTheme)
         datePickerTo.setOnDateSetListener(_dateListenerTo)
         _timePickerTo = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerTo,timeNow.hour,timeNow.minute,true)
-        _dateListenerTo.stuff(_timePickerTo)
+        _dateListenerTo.setTimePicker(_timePickerTo)
 
 
         view.findViewById<Button>(R.id.TimeIntervalFragmentFrom).setOnClickListener { datePickerFrom.show() }
@@ -89,7 +89,6 @@ class TimeIntervalFragment : SuperFragment() {
 
         return view
     }
-
 
     private fun send() {
         val message: String = MyBluetoothService.getTimeInterval(_gas.selectedItem.toString(), _dateListenerFrom.getTime(),
@@ -123,7 +122,7 @@ class TimeFragment : SuperFragment() {
         val datePicker = DatePickerDialog(context!!,R.style.DialogTheme)
         datePicker.setOnDateSetListener(_dateListener)
         _time = TimePickerDialog(context!!,R.style.DialogTheme,_dateListener,timeNow.hour,timeNow.minute, true)
-        _dateListener.stuff(_time)
+        _dateListener.setTimePicker(_time)
 
         view.findViewById<Button>(R.id.TimeFragmentTime).setOnClickListener { datePicker.show() }
         view.findViewById<Button>(R.id.TimeFragmentPosBut).setOnClickListener { send() }
@@ -268,7 +267,7 @@ class DateTimePicker : DialogFragment(), DatePickerDialog.OnDateSetListener, Tim
         return LocalDateTime.of(LocalDate.of(_year,_month,_day), LocalTime.of(_hour,_minute))
     }
 
-    fun stuff(tp : TimePickerDialog) {
+    fun setTimePicker(tp : TimePickerDialog) {
         _tp = tp
     }
 }

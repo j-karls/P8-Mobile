@@ -14,28 +14,19 @@ import java.lang.Exception
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
 private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:HH.mm.ss")
-
-// Defines several constants used when transmitting messages between the
-// service and the UI.
 const val MESSAGE_READ: Int = 0
 const val MESSAGE_WRITE: Int = 1
 const val MESSAGE_TOAST: Int = 2
 const val MESSAGE_CONNECT: Int = 3
 const val MESSAGE_EMPTY: Int = 4
 const val MESSAGE_ERROR: Int = 5
-// ... (Add other message types here as needed.)
 
-class MyBluetoothService(
-    // handler that gets info from Bluetooth service
-    private val handler: Handler,
-    // optional UUID
-    uuid : UUID? = null,
-    device: BluetoothDevice) {
+class MyBluetoothService( private val handler: Handler, device: BluetoothDevice) {
+
     private val mmSocket: BluetoothSocket =
             try {device.javaClass.getMethod("createInsecureRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
@@ -89,14 +80,12 @@ class MyBluetoothService(
             }
         }
 
-        // Call this from the main activity to send data to the remote device.
         fun write(bytes: ByteArray) {
             try {
                 mmOutStream.write(bytes)
             } catch (e: IOException) {
                 Log.e(TAG, "Error occurred when sending data", e)
 
-                // Send a failure message back to the activity.
                 val writeErrorMsg = handler.obtainMessage(MESSAGE_TOAST)
                 val bundle = Bundle().apply {
                     putString("toast", "Couldn't send data to the other device")
@@ -106,13 +95,11 @@ class MyBluetoothService(
                 return
             }
 
-            // Share the sent message with the UI activity.
             val writtenMsg = handler.obtainMessage(
                 MESSAGE_WRITE, -1, -1, mmBuffer.toString(Charset.defaultCharset()))
             writtenMsg.sendToTarget()
         }
 
-        // Call this method from the main activity to shut down the connection.
         fun cancel() {
             try {
                 mmSocket.close()
@@ -127,17 +114,15 @@ class MyBluetoothService(
         override fun run() {
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
             try {
-            mmSocket.use { socket ->
-                // Connect to the remote device through the socket. This call blocks
-                // until it succeeds or throws an exception.
-                socket.connect()
-            } }
+                mmSocket.use { socket ->
+                    socket.connect()
+                }
+            }
             catch (e: Exception) {
                 Log.e(TAG,e.toString())
             }
         }
 
-        // Closes the client socket and causes the thread to finish.
         fun cancel() {
             try {
                 mmSocket.close()
@@ -145,6 +130,11 @@ class MyBluetoothService(
                 Log.e(TAG, "Could not close the client socket", e)
             }
         }
+    }
+
+    private fun write(str: String) {
+        try { CommThread().write(str.toByteArray()) }
+        catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
     fun connect() {
@@ -174,11 +164,6 @@ class MyBluetoothService(
         catch (e : Exception) {
             Log.e(TAG,e.message)
         }
-    }
-
-    private fun write(str: String) {
-        try { CommThread().write(str.toByteArray()) }
-        catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
     fun get(vararg args: String) {
@@ -230,8 +215,3 @@ class MyBluetoothService(
         }
     }
 }
-
-
-
-
-
