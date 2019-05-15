@@ -148,19 +148,21 @@ class MyBluetoothService(
     }
 
     fun connect() {
+
         try { ConnectThread().start() }
         catch (e : Exception) {
             Log.e(TAG, e.message)
         handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
         throw Exception("Socket cannot be connected")
         }
-        Thread.sleep(500)
-        Log.i(TAG,mmSocket.isConnected.toString())
         if (mmSocket.isConnected) {
+            Thread.sleep(500)
             CommThread().start()
             handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Connected!").sendToTarget()
+            return
         }
-
+        handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
+        return
     }
 
     fun disconnect() {

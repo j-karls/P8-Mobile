@@ -19,9 +19,9 @@ import java.time.LocalTime
 open class SuperFragment : Fragment() {
     protected lateinit var callback: DialogListener
     protected lateinit var activityCallback: InputListener
-    protected val _gasArray = arrayOf("CO","CO2","Humidity","Temperature")
-    protected val _compArray = arrayOf("=",">","<")
-    protected val _alertArray = arrayOf("predicted", "immediate")
+    protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
+    protected val compArray = arrayOf("=",">","<")
+    protected val alertArray = arrayOf("predicted", "immediate")
     protected val TAG : String = "DEBUG_FRAGMENTS"
 
     interface InputListener {
@@ -66,7 +66,7 @@ class TimeIntervalFragment : SuperFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.timeinterval_fragment, container, false)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_gasArray)
+        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _gas = view.findViewById(R.id.TimeIntervalFragmentGas)
         _gas.adapter = gasArrayAdapter
@@ -110,12 +110,12 @@ class TimeFragment : SuperFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.time_fragment, container, false)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_gasArray)
+        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _gas = view.findViewById(R.id.TimeFragmentGas)
         _gas.adapter = gasArrayAdapter
 
-        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_compArray)
+        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,compArray)
         comparatorArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _comp = view.findViewById(R.id.TimeFragmentComparator)
         _comp.adapter = comparatorArrayAdapter
@@ -151,12 +151,12 @@ class ValueFragment : SuperFragment() {
 
         _value = view.findViewById(R.id.ValueFragmentValue)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_gasArray)
+        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _gas = view.findViewById(R.id.ValueFragmentGas)
         _gas.adapter = gasArrayAdapter
 
-        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_compArray)
+        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,compArray)
         comparatorArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _comp = view.findViewById(R.id.ValueFragmentComparator)
         _comp.adapter = comparatorArrayAdapter
@@ -189,12 +189,12 @@ class AlertFragment : SuperFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.alert_fragment, container, false)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_gasArray)
+        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _gas = view.findViewById(R.id.AlertFragmentGas)
         _gas.adapter = gasArrayAdapter
 
-        val alertArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_alertArray)
+        val alertArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,alertArray)
         alertArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _alert = view.findViewById(R.id.AlertFragmentAlerts)
         _alert.adapter = alertArrayAdapter
@@ -224,7 +224,7 @@ class StatusFragment : SuperFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.status_fragment, container, false)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,_gasArray)
+        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         _gas = view.findViewById(R.id.StatusFragmentGas)
         _gas.adapter = gasArrayAdapter
