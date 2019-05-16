@@ -5,6 +5,7 @@ from subprocess import Popen
 import sys
 from threading import Thread
 import time as tm
+import os
 
 files = ['BT/btserver.py', 'serialreader.py', 'dbmaintainer.py']
 
