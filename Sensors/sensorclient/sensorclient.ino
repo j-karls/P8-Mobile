@@ -117,6 +117,7 @@ public:
     _numMeasurements = 0;
     _aggregatedValue = 0;
     canGetNewValue = false;
+    // Serial.println(String(aggs, 4) + " " + String(nums, 4));
     return String(aggs / nums, 4); // return average
   }
   void cool() { // turn on cooling pin, turn off heating pin
@@ -196,16 +197,19 @@ public:
 };
 
 class SensorMQ135 : public SensorMQ {
+protected:
+    double _ppmFresh = 413; // PPM atmospheric CO2 as per April 2019
 public:
   SensorMQ135(int pinData, int pinDigital, int pinHeating, int pinCooling) : SensorMQ(pinData, pinDigital, pinHeating, pinCooling) { 
     sensorName = String("MQ135");
     cycleTime = 10000; // we aggregate raw measurements every 10 seconds
-    _analogMeasurementFresh = 140;
+    _analogMeasurementFresh = 28;
     _rRatioFresh = 3.7;
     _funcConstantA = 5.1633;
     _funcConstantB = -0.3495;
     _rl = 20000;
-    _r0 = (convertRS(convertVRL(_analogMeasurementFresh))) / _rRatioFresh;
+    // _r0 = (convertRS(convertVRL(_analogMeasurementFresh))) / _rRatioFresh; // Calculate R0 with datasheet-fresh-r-ratio-dependency
+    _r0 = convertRS(convertVRL(_analogMeasurementFresh)) / (_funcConstantA * pow(_ppmFresh, _funcConstantB)); // calculate R0 with known PPM instead of r-ratio
     _aPink = 0.0003051;
     _bPink = -0.024;
     _cPink = 1.272;
@@ -214,6 +218,9 @@ public:
     _cBlue = 1.399;
   }
   void manageState(unsigned long currentTime) {
+    // Serial.println(getRawValue());
+    // Serial.println(_r0);
+    
     if (_cycleStartTime == 0) { // if we have not yet started a cycle
       startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
       heat();
@@ -333,9 +340,9 @@ void serialPrintResult(Sensor *sensor, String sensorValue) {
 // Program flow
 
 Diode diode = Diode(13);
-SensorMQ7 sensorMQ7 = SensorMQ7(A3, 8, A0, A2);
-SensorMQ135 sensorMQ135 = SensorMQ135(A4, 7, A1, -1);
-SensorAM2302 sensorAM2302 = SensorAM2302(12);
+SensorMQ7 sensorMQ7 = SensorMQ7(A4, -1, -1, -1);
+SensorMQ135 sensorMQ135 = SensorMQ135(A5, -1, -1, -1);
+SensorAM2302 sensorAM2302 = SensorAM2302(7);
 
 unsigned long startTime;
 unsigned long currentTime;
@@ -376,5 +383,6 @@ void loop()
   sensorMQ7.manageState(currentTime);
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
-  // Serial.println(sensorMQ7.getRawValue());
+  Serial.println(sensorMQ7.getRawValue());
+  Serial.println(sensorMQ135.getRawValue());
 }
