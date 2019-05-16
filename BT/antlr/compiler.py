@@ -5,7 +5,7 @@ from antlr.LanguageParser import LanguageParser
 from antlr4.tree.Trees import Trees
 from antlr4.error.ErrorListener import ErrorListener
 from antlr.LanguageVisitor import LanguageVisitor
- 
+
 def Compile(input):
 	lexer = LanguageLexer(InputStream(input))
 	stream = CommonTokenStream(lexer)
@@ -19,6 +19,8 @@ def Compile(input):
 
 	visitor = LanguageVisitor()
 	query = visitor.visitS(tree)
+	#print('query string: ' + query)
+	return query
 	#print('Input:	' + str(input_stream))
 	#print('Tree:	' + Trees.toStringTree(tree, None, parser))
 	#print('Result:	' + query)

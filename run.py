@@ -4,12 +4,13 @@
 from subprocess import Popen
 import sys
 from threading import Thread
+import time as tm
 
-files = ['dbmaintainer.py', 'BT/btserver.py', 'serialreader.py']
+files = ['BT/btserver.py', 'serialreader.py', 'dbmaintainer.py']
 
 def run(filename):
 	while True:
-		print("\nStarting " + filename)
+		print("-- Starting " + filename)
 		p = Popen("python3 " + filename, shell=True)
 		p.wait()
 
@@ -17,6 +18,7 @@ for file in files:
 	try:
 		t = Thread(target=run, args=(file,))
 		t.start()
+		tm.sleep(0.5)
 	except Exception as e:
 		print(e)
 		pass

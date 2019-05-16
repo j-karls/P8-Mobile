@@ -20,7 +20,7 @@ def main():
 		print('- Checking database for old data - ' + str(datetime.now()))
 		maintainShortterm()
 		maintainLongterm()
-		t.sleep(60*5) # sleep for 5 minutes
+		t.sleep(60*10) # sleep for 10 minutes
 
 def maintainLongterm():
 	db = createConnection()

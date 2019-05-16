@@ -6,51 +6,48 @@ from config import Configuration
 from antlr.compiler import Compile
 import json
 import pickle
+import sqlite3
+from sqlite3 import Error
+import time as t
 
 # Absolute path to sqlite3 database
 DBFILE = '/home/pi/Desktop/data.sqlite'
 
 def APIService(client, addr, cfg):
-	print("Ready for comms with client - MAC: " , addr)
-	while(True):
+	print("Ready for comms with client " , addr[0])
+	while True:
 		data = client.recv(1024)
+		if not data:
+			break
 		str = data.decode('utf-8')
+		print('Received data: ' + str)
+		# Compile string to a SQL query
+		#sqlcommand = Compile('GET co2 value < 200')
+		#sqlcommand = 'SELECT * FROM config WHERE mac = "{}"'.format(addr[0])
+		sqlcommand = 'SELECT * FROM shortterm WHERE type ="co2" AND value < 220'
+		print('Generated SQL query: ' + sqlcommand)
 		try:
-			sqlcommnand = Compile(str)
-			try:
-				# Execute generated sql command, against local db
-				result = readData(sqlcommnand)
-				# Convert result (rows) to a json object
-				jsonObj = json.dumps([dict(x) for x in result])
-				# Serialize object to string
-				#data = pickle.dumps(jsonObj)
-				# Send
-				client.send(jsonObj)
-			except Exception as e:
-				client.send('ERROR-2')
-		except Exception as e:
-			client.send('ERROR-1')
+			# Execute generated sql command, against local db
+			result = readFromDatabase(sqlcommand)
+			# Convert result (rows) to a json object
+			jsonObj = json.dumps(result)
+			# Send
+			y = jsonObj
+			print('Sending: ' + y)
+			client.send(y.encode())
+		except BluetoothError as e:
+			print(e)
+			client.send('ERROR-1'.encode())
+	client.close()
 
-
-		# The "SET" parts of a command is handled immidiately within the compiler
-
-
-		#print('Received: ' + str)
-		#if (str == 'GET'):
-		#	client.send("sending requested data...")
-		#elif (str == 'PUT'):
-		#	client.send("You wish to give data?")
-		#else:
-		#	client.send("Unknown command")
-
-def readData(sql):
+def readFromDatabase(sql):
 	try:
 		conn = sqlite3.connect(DBFILE)
 	except Exception as e:
 		print(e)
-	cur = dbconn.cursor()
+	cur = conn.cursor()
 	cur.execute(sql)
-	data = cursor.fetchall()
+	data = cur.fetchall()
 	return data
 
 
@@ -65,6 +62,8 @@ def handleClient(client, addr):
 		pass
 
 def main(args):
+	createDatabase(DBFILE)
+
 	server_sock = BluetoothSocket(RFCOMM)
 	server_port = PORT_ANY
 	server_address = '', server_port
@@ -77,16 +76,71 @@ def main(args):
 				service_classes=[SERIAL_PORT_CLASS],
 				profiles=[SERIAL_PORT_PROFILE])
 
-	print('Listening for client, on port ', server_port, '...')
+	print('Listening for clients, on port ', server_port, '...')
 
 	while(True):
 		client_sock, addr = server_sock.accept()
 		t = Thread(target=handleClient, args=(client_sock, addr))
 		t.start()
-		#client_sock.close();
 
 	server_sock.close()
 
+def create_connection(db_file):
+	try:
+		conn = sqlite3.connect(db_file)
+		return conn
+	except Error as e:
+		print(e)
+	return None
+
+def create_table(conn, create_table_sql):
+	try:
+		c = conn.cursor()
+		c.execute(create_table_sql)
+	except Error as e:
+		print(e)
+
+def createDatabase(file):
+	create_connection(file)
+
+	table_shortterm = """ CREATE TABLE IF NOT EXISTS shortterm (
+										id INTEGER PRIMARY KEY AUTOINCREMENT,
+										type TEXT NOT NULL,
+										value INTEGER NOT NULL,
+										time DATE NOT NULL
+									); """
+
+	table_longterm = """ CREATE TABLE IF NOT EXISTS longterm (
+										id INTEGER PRIMARY KEY AUTOINCREMENT,
+										type TEXT NOT NULL,
+										value INTEGER NOT NULL,
+										time DATE NOT NULL
+									); """
+
+	table_config = """ CREATE TABLE IF NOT EXISTS config (
+										mac TEXT PRIMARY KEY,
+										alert INTEGER NOT NULL,
+										guideline TEXT NOT NULL
+									); """
+
+	table_limits = """ CREATE TABLE IF NOT EXISTS limits (
+										id INTEGER PRIMARY KEY AUTOINCREMENT,
+										source TEXT NOT NULL,
+										type TEXT NOT NULL,
+										upperbound INTEGER,
+										lowerbound INTEGER 
+									); """
+
+	 # create a database connection
+	conn = create_connection(file)
+	if conn is not None:
+		# create projects table
+		create_table(conn, table_shortterm)
+		create_table(conn, table_longterm)
+		create_table(conn, table_config)
+		create_table(conn, table_limits)
+	else:
+		print("Error! cannot create the database connection.")
 
 if __name__ == '__main__':
 	main(sys.argv)

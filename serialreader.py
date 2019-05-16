@@ -8,7 +8,7 @@ import sqlite3
 from threading import Thread
 from serial.serialutil import SerialException
 
-DBFILE = '/home/pi/Desktop/data.sqlite'
+DBFILE = '~/Desktop/data.sqlite'
 DBCOMMITRATE = 10 #Secs
 
 #Bindings
