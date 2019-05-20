@@ -17,21 +17,23 @@ import java.time.format.DateTimeFormatter
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
+private const val uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:HH.mm.ss")
-const val MESSAGE_READ: Int = 0
-const val MESSAGE_WRITE: Int = 1
-const val MESSAGE_TOAST: Int = 2
-const val MESSAGE_CONNECT: Int = 3
-const val MESSAGE_EMPTY: Int = 4
-const val MESSAGE_ERROR: Int = 5
+
 
 class MyBluetoothService( private val handler: Handler, device: BluetoothDevice) {
 
     private val _socket: BluetoothSocket =
-            try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
+        try {device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)}
+        catch (e: Exception){
+            throw IOException("FUCK")
+            /*try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
                 .invoke(device,1) as BluetoothSocket }
             catch (e: Exception) {Log.e(TAG, e.toString())
-                throw Exception("No bluetooth connection could be created")}
+                throw Exception("No bluetooth connection could be created")}*/
+        }
+
+
 
     private inner class CommThread : Thread() {
 
@@ -40,10 +42,6 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
         private val _buffer: ByteArray = ByteArray(1024) // _buffer store for the stream
 
         override fun run() {
-            if (_socket.isConnected)
-                Log.i(TAG,"YES")
-            else
-                Log.i(TAG,"FUCK")
             var numBytes: Int // bytes returned from read()
 
             // Keep listening to the InputStream until an exception occurs.
@@ -58,7 +56,8 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
                 //TODO: preface responses from pi with code, put in arg2
 
                 // Convert the message to String s.t. the intention of the message can be understood
-                val message = _buffer.toString(Charset.defaultCharset())
+                val buff : ByteArray = _buffer.clone().take(numBytes).toByteArray()
+                val message = buff.toString()
 
                 var readMsg: Message?
 
@@ -100,7 +99,7 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
             }
 
             val writtenMsg = handler.obtainMessage(
-                MESSAGE_WRITE, -1, -1, _buffer.toString(Charset.defaultCharset()))
+                MESSAGE_WRITE, -1, -1, bytes.toString(Charset.defaultCharset()))
             writtenMsg.sendToTarget()
         }
 
@@ -120,11 +119,14 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
             try {
                 _socket.use { socket ->
                     socket.connect()
+
+                    this@MyBluetoothService.CommThread().start()
                 }
             }
             catch (e: Exception) {
                 Log.e(TAG,e.toString())
             }
+            Log.i(TAG,"FUCKSHITUP")
         }
 
         fun cancel() {
@@ -149,9 +151,9 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
         handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
         throw Exception("Socket cannot be connected")
         }
-        Thread.sleep(200)
+        /*Thread.sleep(200)
         Log.i(TAG,_socket.remoteDevice.name)
-        CommThread().start()
+        CommThread().start()*/
     }
 
     fun disconnect() {
@@ -184,6 +186,13 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
     }
 
     companion object {
+        const val MESSAGE_READ: Int = 0
+        const val MESSAGE_WRITE: Int = 1
+        const val MESSAGE_TOAST: Int = 2
+        const val MESSAGE_CONNECT: Int = 3
+        const val MESSAGE_EMPTY: Int = 4
+        const val MESSAGE_ERROR: Int = 5
+
         fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
             val fromDate = from.format(formatter)
             val toDate = to.format(formatter)

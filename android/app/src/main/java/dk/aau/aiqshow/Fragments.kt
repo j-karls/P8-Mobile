@@ -10,7 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import dk.aau.iaqlibrary.MyBluetoothService
+import dk.aau.iaqlibrary.MyBluetoothService.Companion as get
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -91,7 +91,7 @@ class TimeIntervalFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getTimeInterval(_gas.selectedItem.toString(), _dateListenerFrom.getTime(),
+        val message: String = get.getTimeInterval(_gas.selectedItem.toString(), _dateListenerFrom.getTime(),
             _dateListenerTo.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
@@ -132,7 +132,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getTime(_gas.selectedItem.toString(),_comp.selectedItem.toString(),_dateListener.getTime())
+        val message: String = get.getTime(_gas.selectedItem.toString(),_comp.selectedItem.toString(),_dateListener.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
     }
@@ -172,7 +172,7 @@ class ValueFragment : SuperFragment() {
         val comp = _comp.selectedItem.toString()
         val value: Float = if (_value.text.toString().isNotEmpty()) _value.text.toString().toFloat() else 0F
 
-        val message: String = MyBluetoothService.getValue(gas,comp,value)
+        val message: String = get.getValue(gas,comp,value)
 
         activityCallback.onSend(message)
         callback.onEnd()
@@ -206,7 +206,7 @@ class AlertFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getAlerts(
+        val message: String = get.getAlerts(
             _gas.selectedItem.toString(),
             _alert.selectedItem.toString())
 
@@ -235,7 +235,7 @@ class StatusFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = MyBluetoothService.getStatus(_gas.selectedItem.toString())
+        val message: String = get.getStatus(_gas.selectedItem.toString())
 
         activityCallback.onSend(message)
         callback.onEnd()
