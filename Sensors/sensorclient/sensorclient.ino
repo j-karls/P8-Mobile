@@ -23,8 +23,7 @@ public:
 class SensorMQ : public Sensor {
 protected:
   int _pinData; // the analog pin of the arduino where we receive result voltage (analog in), the higher voltage, the higher concentration of gas
-  int _pinHeating; // the analog pin that the sensor draws power (PWM) from
-  int _pinCooling;
+  int _pinDigitalSwitch; // the digital pin that controls a relay switching between two input voltages to the sensor
   int _pinDigital; // the digital pin, which is either 0 or 1, depending on if the gas measurement is over a certain amount (can be configured with the load resistor)
   bool _isHeating = false;
 
@@ -52,15 +51,13 @@ protected:
   int _numMeasurements = 0;
   double _aggregatedValue = 0;
 public:
-  SensorMQ(int pinData, int pinDigital, int pinHeating, int pinCooling) { 
+  SensorMQ(int pinData, int pinDigital, int pinDigitalSwitch) { 
     _pinData = pinData; 
     _pinDigital = pinDigital; 
-    _pinHeating = pinHeating; 
-    _pinCooling = pinCooling;
+    _pinDigitalSwitch = pinDigitalSwitch;
     pinMode(_pinData, INPUT); 
-    pinMode(_pinHeating, OUTPUT);
-    pinMode(_pinCooling, OUTPUT);
     pinMode(_pinDigital, INPUT);
+    pinMode(_pinDigitalSwitch, OUTPUT);
 
     canGetNewValue = false;
     _cycleStartTime = 0;
@@ -120,14 +117,12 @@ public:
     // Serial.println(String(aggs, 4) + " " + String(nums, 4));
     return String(aggs / nums, 4); // return average
   }
-  void cool() { // turn on cooling pin, turn off heating pin
-    analogWrite(_pinCooling, 255); 
-    analogWrite(_pinHeating, 0); 
+  void cool() { // turn off heating pin
+    digitalWrite(_pinDigitalSwitch, LOW); 
     _isHeating = false;
   }
   void heat() {
-    analogWrite(_pinCooling, 0); 
-    analogWrite(_pinHeating, 255); 
+    digitalWrite(_pinDigitalSwitch, HIGH); 
     _isHeating = true;
   }
   void startNewCycle(unsigned long newCycleStartTime) {
@@ -137,14 +132,13 @@ public:
 
 class SensorMQ7 : public SensorMQ {
 protected:
-  unsigned long _heatPeriod = 6000;
-  unsigned long _coolPeriod = 9000; 
-  int _pinCooling; // the analog pin to be used for cooling (1.4 V)
+  unsigned long _heatPeriod = 60000;
+  unsigned long _coolPeriod = 90000; 
 public:
-  SensorMQ7(int pinData, int pinDigital, int pinHeating, int pinCooling) : SensorMQ(pinData, pinDigital, pinHeating, pinCooling) { 
+  SensorMQ7(int pinData, int pinDigital, int pinDigitalSwitch) : SensorMQ(pinData, pinDigital, pinDigitalSwitch) { 
     sensorName = String("MQ7");
     cycleTime = _heatPeriod + _coolPeriod;
-    _analogMeasurementFresh = 40;
+    _analogMeasurementFresh = 45.31378;
     _rRatioFresh = 1;
     _funcConstantA = 0.8494;
     _funcConstantB = -0.5455;
@@ -173,9 +167,7 @@ public:
       cool();
     }
     else if (cycleProgress >= _heatPeriod) { // if we're in the cooling state
-      heat(); // turn on the sensor for short time, such that we can actually read values
       performAggregation(convertPPM(getRawValue()));
-      cool(); // return to cooling state
     }
     // otherwise, we´re currently heating, and should continue to do so
   }
@@ -200,10 +192,10 @@ class SensorMQ135 : public SensorMQ {
 protected:
     double _ppmFresh = 413; // PPM atmospheric CO2 as per April 2019
 public:
-  SensorMQ135(int pinData, int pinDigital, int pinHeating, int pinCooling) : SensorMQ(pinData, pinDigital, pinHeating, pinCooling) { 
+  SensorMQ135(int pinData, int pinDigital) : SensorMQ(pinData, pinDigital, -1) { 
     sensorName = String("MQ135");
     cycleTime = 10000; // we aggregate raw measurements every 10 seconds
-    _analogMeasurementFresh = 28;
+    _analogMeasurementFresh = 32.03519;
     _rRatioFresh = 3.7;
     _funcConstantA = 5.1633;
     _funcConstantB = -0.3495;
@@ -336,12 +328,20 @@ void serialPrintResult(Sensor *sensor, String sensorValue) {
   Serial.println(String(sensor->sensorName + "|" + sensorValue));
 }
 
+void serialPrintResult(String gasName, double value) {
+  serialPrintResult(gasName, String(value));
+}
+
+void serialPrintResult(String gasName, String value) {
+  Serial.println(String(gasName + ":" + value));
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Program flow
 
 Diode diode = Diode(13);
-SensorMQ7 sensorMQ7 = SensorMQ7(A4, -1, -1, -1);
-SensorMQ135 sensorMQ135 = SensorMQ135(A5, -1, -1, -1);
+SensorMQ7 sensorMQ7 = SensorMQ7(A4, -1, 6);
+SensorMQ135 sensorMQ135 = SensorMQ135(A5, -1);
 SensorAM2302 sensorAM2302 = SensorAM2302(7);
 
 unsigned long startTime;
@@ -354,26 +354,39 @@ void setup()
   sensorMQ7.calibrate();
   sensorMQ135.calibrate();
   sensorAM2302.calibrate();
+
+  // pinMode(4, OUTPUT);
 }
 
 void loop()
 {
+/*  delay(5000);
+  digitalWrite(4, HIGH);
+  delay(5000);
+  digitalWrite(4, LOW);
+*/
+//  Serial.println("Penis");
   delay(1000);
   currentTime = millis(); 
 
   // Get new value
   if (sensorMQ7.canGetNewValue) {
-    serialPrintResult(&sensorMQ7);
+    // serialPrintResult(&sensorMQ7);
+    serialPrintResult(String("CO"), sensorMQ7.getValue());
   }
   if (sensorMQ135.canGetNewValue) {
-    serialPrintResult(&sensorMQ135);
+    // serialPrintResult(&sensorMQ135);
+    serialPrintResult(String("CO2"), sensorMQ135.getValue());
   }
   if (sensorAM2302.canGetNewValue) {
     String val = sensorAM2302.getValue();
     int delimiter = val.indexOf("|");
     double hum = val.substring(0, delimiter).toDouble(); 
     double temp = val.substring(delimiter + 1).toDouble();
-    serialPrintResult(&sensorAM2302, String("RH%:" + String(hum) + "|" + "Temp°C:" + String(temp)));
+    // serialPrintResult(&sensorAM2302, String("RH%:" + String(hum) + "|" + "Temp°C:" + String(temp)));
+    serialPrintResult(String("Temp"), temp);
+    serialPrintResult(String("Hum"), hum);
+
     sensorMQ7.setTemperatureHumidity(temp, hum);
     sensorMQ135.setTemperatureHumidity(temp, hum);
   }
@@ -383,6 +396,7 @@ void loop()
   sensorMQ7.manageState(currentTime);
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
-  Serial.println(sensorMQ7.getRawValue());
-  Serial.println(sensorMQ135.getRawValue());
+
+//  Serial.println("MQ7:" + String(sensorMQ7.getRawValue(), 4));
+//  Serial.println("MQ135:" + String(sensorMQ135.getRawValue(), 4));
 }
