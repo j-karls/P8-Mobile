@@ -21,7 +21,7 @@ import java.lang.Exception
 import java.util.*
 import dk.aau.iaqlibrary.MyBluetoothService.Companion as comp
 import android.widget.Toast
-
+import java.nio.charset.Charset
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         override fun handleMessage(msg: Message) {
             val thing1 = msg.obj as ByteArray
-            val thing = thing1.contentToString()
+            val thing = thing1.toString(Charset.defaultCharset()).take(msg.arg1)
 
             Log.i(TAG,msg.what.toString() + " " + msg.arg1.toString() + " " + msg.arg2.toString() + " " + thing)
 
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                         try {
                             fail = true
                             _succ.close()
-                            _handler.obtainMessage(1, -1, -1, byteArrayOf(0))
+                            _handler.obtainMessage(1, 10, -1, "!Connected".toByteArray())
                                 .sendToTarget()
                         } catch (e2: IOException) {
                             //insert code to deal with this
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                         _connect = ConnectedThread(_succ)
                         _connect.start()
 
-                        _handler.obtainMessage(1, 1, -1, byteArrayOf(1))
+                        _handler.obtainMessage(1, 9, -1, "Connected".toByteArray())
                             .sendToTarget()
                     }
                 }
@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                         SystemClock.sleep(100) //pause and wait for rest of data. Adjust this depending on your sending speed.
                         bytes = mmInStream.available() // how many bytes are ready to be read?
                         bytes = mmInStream.read(buffer, 0, bytes) // record how many bytes we actually read
-                        _handler.obtainMessage(MyBluetoothService.MESSAGE_READ, bytes, -1, buffer)
+                        _handler.obtainMessage(comp.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget() // Send the obtained bytes to the UI activity
                     }
                 } catch (e: IOException) {
