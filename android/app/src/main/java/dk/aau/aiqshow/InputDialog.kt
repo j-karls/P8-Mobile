@@ -12,20 +12,20 @@ import java.lang.Exception
 
 class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener, SuperFragment.DialogListener {
 
-    private val _options: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Alert", "Status")
-    private val _fragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),
+    private val mmOptions: Array<String> = arrayOf("TimeInterval", "Time", "Value", "Alert", "Status")
+    private val mmFragId: Array<Fragment> = arrayOf(TimeIntervalFragment(),
         TimeFragment(), ValueFragment(), AlertFragment(), StatusFragment())
-    private lateinit var _context: Context
+    private lateinit var mmContext: Context
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        _context = context!!
+        mmContext = context!!
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.input_dialog,container,false)
 
-        val arrayAdapter = ArrayAdapter(_context, android.R.layout.simple_spinner_item, _options)
+        val arrayAdapter = ArrayAdapter(mmContext, android.R.layout.simple_spinner_item, mmOptions)
         val spinner = view.findViewById<Spinner>(R.id.test_spinner)
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.onItemSelectedListener = this
@@ -36,7 +36,7 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener, SuperFr
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         childFragmentManager
             .beginTransaction()
-            .replace(R.id.Fragment,_fragId[position])
+            .replace(R.id.Fragment,mmFragId[position])
             .commit()
     }
 

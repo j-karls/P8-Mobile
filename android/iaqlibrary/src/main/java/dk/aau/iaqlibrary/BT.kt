@@ -1,172 +1,154 @@
 package dk.aau.iaqlibrary
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
-import android.os.Bundle
 import android.os.Handler
-import android.os.Message
+import android.os.SystemClock
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
-import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
-private const val uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:HH.mm.ss")
 
+class BluetoothService(private val handler: Handler, private val device: BluetoothDevice) {
+    private val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+    lateinit var mmSocket : BluetoothSocket
+    private val mmCommThread = CommunicationThread()
+    private val mmConnThread = ConnectThread()
 
-class MyBluetoothService( private val handler: Handler, device: BluetoothDevice) {
-
-    private val _socket: BluetoothSocket =
-        try {device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)}
-        catch (e: Exception){
-            throw IOException("FUCK")
-            /*try {device.javaClass.getMethod("createRfcommSocket", (Int::class.javaPrimitiveType))
-                .invoke(device,1) as BluetoothSocket }
-            catch (e: Exception) {Log.e(TAG, e.toString())
-                throw Exception("No bluetooth connection could be created")}*/
+    private fun createBluetoothSocket(device: BluetoothDevice) : BluetoothSocket {
+        try {
+            val m = device.javaClass.getMethod("createInsecureRfcommSocketToServiceRecord", UUID::class.java)
+            return  m.invoke(device, uuid) as BluetoothSocket
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not create Insecure RFComm Connection", e)
         }
+        return  device.createRfcommSocketToServiceRecord(uuid)
+    }
 
+    private inner class CommunicationThread : Thread() {
+        private lateinit var mmInStream: InputStream
+        private lateinit var mmOutStream: OutputStream
 
-
-    private inner class CommThread : Thread() {
-
-        private val _inStream: InputStream = _socket.inputStream
-        private val _outStream: OutputStream = _socket.outputStream
-        private val _buffer: ByteArray = ByteArray(1024) // _buffer store for the stream
 
         override fun run() {
-            var numBytes: Int // bytes returned from read()
+            try {
+                mmInStream = mmSocket.inputStream
+                mmOutStream = mmSocket.outputStream
+            } catch (e: IOException) {
 
-            // Keep listening to the InputStream until an exception occurs.
+            }
+
+            var buffer: ByteArray  // buffer store for the stream
+            var bytes: Int // bytes returned from read()
+            // Keep listening to the InputStream until an exception occurs
             while (true) {
-                // Read from the InputStream.
-                numBytes = try {
-                    _inStream.read(_buffer)
+                try {
+                    // Read from the InputStream
+                    bytes = mmInStream.available()
+                    if (bytes != 0) {
+                        buffer = ByteArray(1024)
+                        SystemClock.sleep(100) //pause and wait for rest of data. Adjust this depending on your sending speed.
+                        bytes = mmInStream.available() // how many bytes are ready to be read?
+                        bytes = mmInStream.read(buffer, 0, bytes) // record how many bytes we actually read
+
+                        if (bytes != 0)
+                            handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget()
+                        else
+                            handler.obtainMessage(MESSAGE_EMPTY, bytes, -1, buffer).sendToTarget()
+                    }
                 } catch (e: IOException) {
-                    Log.d(TAG, "Input stream disconnected", e)
+                    e.printStackTrace()
+                    handler.obtainMessage(MESSAGE_ERROR, 10, -1, "Read Error".toByteArray()).sendToTarget()
                     break
                 }
-                //TODO: preface responses from pi with code, put in arg2
 
-                // Convert the message to String s.t. the intention of the message can be understood
-                val buff : ByteArray = _buffer.clone().take(numBytes).toByteArray()
-                val message = buff.toString()
-
-                var readMsg: Message?
-
-                when (message) {
-                    "ERROR" ->
-                        readMsg = handler.obtainMessage(
-                        MESSAGE_ERROR, numBytes, -1,
-                        message
-                    )
-                    "" ->
-                        readMsg = handler.obtainMessage(
-                        MESSAGE_EMPTY, numBytes, -1,
-                        message
-                    )
-                    else ->
-                        readMsg = handler.obtainMessage(
-                        MESSAGE_READ, numBytes, -1,
-                        message
-                    )
-                }
-
-                readMsg.sendToTarget()
             }
         }
 
-        fun write(bytes: ByteArray) {
+        /* Call this from the main activity to send data to the remote device */
+        fun write(input: String) {
+            val bytes = input.toByteArray()           //converts entered String into bytes
             try {
-                _outStream.write(bytes)
+                mmOutStream.write(bytes)
             } catch (e: IOException) {
-                Log.e(TAG, "Error occurred when sending data", e)
-
-                val writeErrorMsg = handler.obtainMessage(MESSAGE_TOAST)
-                val bundle = Bundle().apply {
-                    putString("toast", "Couldn't send data to the other device")
-                }
-                writeErrorMsg.data = bundle
-                handler.sendMessage(writeErrorMsg)
-                return
             }
 
-            val writtenMsg = handler.obtainMessage(
-                MESSAGE_WRITE, -1, -1, bytes.toString(Charset.defaultCharset()))
-            writtenMsg.sendToTarget()
         }
 
+        /* Call this from the main activity to shutdown the connection */
         fun cancel() {
             try {
-                _socket.close()
+                mmSocket.close()
+                this.interrupt()
             } catch (e: IOException) {
-                Log.e(TAG, "Could not close the connect socket", e)
             }
+
         }
     }
 
     private inner class ConnectThread : Thread() {
 
         override fun run() {
-            BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+            var fail = false
+
             try {
-                _socket.use { socket ->
-                    socket.connect()
+                mmSocket = createBluetoothSocket(device)
+            } catch (e: IOException) {
+                fail = true
+            }
 
-                    this@MyBluetoothService.CommThread().start()
+            // Establish the Bluetooth socket connection.
+            try {
+                mmSocket.connect()
+            } catch (e: IOException) {
+                try {
+                    fail = true
+                    mmSocket.close()
+                    handler.obtainMessage(MESSAGE_ERROR, 10, -1, "!Connected".toByteArray())
+                        .sendToTarget()
+                } catch (e2: IOException) {
+                    //insert code to deal with this
                 }
-            }
-            catch (e: Exception) {
-                Log.e(TAG,e.toString())
-            }
-            Log.i(TAG,"FUCKSHITUP")
-        }
 
+            }
+
+            if (!fail) {
+                mmCommThread.start()
+
+                handler.obtainMessage(MESSAGE_CONNECT, 9, -1, "Connected".toByteArray())
+                    .sendToTarget()
+            }
+        }
         fun cancel() {
             try {
-                _socket.close()
-            } catch (e: IOException) {
-                Log.e(TAG, "Could not close the client socket", e)
+                this.interrupt()
+                mmCommThread.cancel()
+            } catch (e: Exception) {
+                Log.e(TAG,e.toString())
             }
-        }
-    }
 
-    private fun write(str: String) {
-        try { CommThread().write(str.toByteArray()) }
-        catch (e : Exception) { Log.e(TAG,e.message) }
+        }
     }
 
     fun connect() {
-
-        try { ConnectThread().start() }
-        catch (e : Exception) {
-            Log.e(TAG, e.message)
-        handler.obtainMessage(MESSAGE_CONNECT,-1,-1, "Cannot Connect").sendToTarget()
-        throw Exception("Socket cannot be connected")
-        }
-        /*Thread.sleep(200)
-        Log.i(TAG,_socket.remoteDevice.name)
-        CommThread().start()*/
+        mmConnThread.start()
     }
 
     fun disconnect() {
-        try {
-            CommThread().interrupt()
-            CommThread().cancel()
-            Thread.sleep(200)
-            ConnectThread().interrupt()
-            ConnectThread().cancel()
-        }
-        catch (e : Exception) {
-            Log.e(TAG,e.message)
-        }
+        mmConnThread.cancel()
+    }
+
+    private fun write(str: String) {
+        try { mmCommThread.write(str) }
+        catch (e : Exception) { Log.e(TAG,e.message) }
     }
 
     fun get(vararg args: String) {
@@ -224,4 +206,4 @@ class MyBluetoothService( private val handler: Handler, device: BluetoothDevice)
             return time.format(formatter)
         }
     }
-}
+    }

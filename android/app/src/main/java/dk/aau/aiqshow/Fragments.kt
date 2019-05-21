@@ -10,7 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import dk.aau.iaqlibrary.MyBluetoothService.Companion as get
+import dk.aau.iaqlibrary.BluetoothService.Companion as get
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -54,13 +54,12 @@ open class SuperFragment : Fragment() {
 
 class TimeIntervalFragment : SuperFragment() {
 
-    private lateinit var _gas : Spinner
-    private lateinit var _timePickerFrom : TimePickerDialog
-    private lateinit var _timePickerTo : TimePickerDialog
-    private val _dateListenerFrom = DateTimePicker()
-    private val _dateListenerTo = DateTimePicker()
-
-    private val timeNow = LocalDateTime.now()
+    private lateinit var mmGas : Spinner
+    private lateinit var mmTimePickerFrom : TimePickerDialog
+    private lateinit var mmTimePickerTo : TimePickerDialog
+    private val mmDateListenerFrom = DateTimePicker()
+    private val mmDateListenerTo = DateTimePicker()
+    private val mmTimeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -68,18 +67,20 @@ class TimeIntervalFragment : SuperFragment() {
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _gas = view.findViewById(R.id.TimeIntervalFragmentGas)
-        _gas.adapter = gasArrayAdapter
+        mmGas = view.findViewById(R.id.TimeIntervalFragmentGas)
+        mmGas.adapter = gasArrayAdapter
 
         val datePickerFrom = DatePickerDialog(context!!,R.style.DialogTheme)
-        datePickerFrom.setOnDateSetListener(_dateListenerFrom)
-        _timePickerFrom = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerFrom,timeNow.hour,timeNow.minute,true)
-        _dateListenerFrom.setTimePicker(_timePickerFrom)
+        datePickerFrom.setOnDateSetListener(mmDateListenerFrom)
+        mmTimePickerFrom = TimePickerDialog(context!!,R.style.DialogTheme,mmDateListenerFrom,
+            mmTimeNow.hour,mmTimeNow.minute,true)
+        mmDateListenerFrom.setTimePicker(mmTimePickerFrom)
 
         val datePickerTo = DatePickerDialog(context!!,R.style.DialogTheme)
-        datePickerTo.setOnDateSetListener(_dateListenerTo)
-        _timePickerTo = TimePickerDialog(context!!,R.style.DialogTheme,_dateListenerTo,timeNow.hour,timeNow.minute,true)
-        _dateListenerTo.setTimePicker(_timePickerTo)
+        datePickerTo.setOnDateSetListener(mmDateListenerTo)
+        mmTimePickerTo = TimePickerDialog(context!!,R.style.DialogTheme,mmDateListenerTo,
+            mmTimeNow.hour,mmTimeNow.minute,true)
+        mmDateListenerTo.setTimePicker(mmTimePickerTo)
 
 
         view.findViewById<Button>(R.id.TimeIntervalFragmentFrom).setOnClickListener { datePickerFrom.show() }
@@ -91,19 +92,19 @@ class TimeIntervalFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getTimeInterval(_gas.selectedItem.toString(), _dateListenerFrom.getTime(),
-            _dateListenerTo.getTime())
+        val message: String = get.getTimeInterval(mmGas.selectedItem.toString(), mmDateListenerFrom.getTime(),
+            mmDateListenerTo.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
     }
 }
 
 class TimeFragment : SuperFragment() {
-    private lateinit var _gas : Spinner
-    private lateinit var _comp : Spinner
-    private lateinit var _time : TimePickerDialog
-    private val _dateListener = DateTimePicker()
-    private val timeNow = LocalDateTime.now()
+    private lateinit var mmGas : Spinner
+    private lateinit var mmComp : Spinner
+    private lateinit var mmTime : TimePickerDialog
+    private val mmDateListener = DateTimePicker()
+    private val mmTimeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -111,18 +112,18 @@ class TimeFragment : SuperFragment() {
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _gas = view.findViewById(R.id.TimeFragmentGas)
-        _gas.adapter = gasArrayAdapter
+        mmGas = view.findViewById(R.id.TimeFragmentGas)
+        mmGas.adapter = gasArrayAdapter
 
         val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,compArray)
         comparatorArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _comp = view.findViewById(R.id.TimeFragmentComparator)
-        _comp.adapter = comparatorArrayAdapter
+        mmComp = view.findViewById(R.id.TimeFragmentComparator)
+        mmComp.adapter = comparatorArrayAdapter
 
         val datePicker = DatePickerDialog(context!!,R.style.DialogTheme)
-        datePicker.setOnDateSetListener(_dateListener)
-        _time = TimePickerDialog(context!!,R.style.DialogTheme,_dateListener,timeNow.hour,timeNow.minute, true)
-        _dateListener.setTimePicker(_time)
+        datePicker.setOnDateSetListener(mmDateListener)
+        mmTime = TimePickerDialog(context!!,R.style.DialogTheme,mmDateListener,mmTimeNow.hour,mmTimeNow.minute, true)
+        mmDateListener.setTimePicker(mmTime)
 
         view.findViewById<Button>(R.id.TimeFragmentTime).setOnClickListener { datePicker.show() }
         view.findViewById<Button>(R.id.TimeFragmentPosBut).setOnClickListener { send() }
@@ -132,7 +133,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getTime(_gas.selectedItem.toString(),_comp.selectedItem.toString(),_dateListener.getTime())
+        val message: String = get.getTime(mmGas.selectedItem.toString(),mmComp.selectedItem.toString(),mmDateListener.getTime())
         activityCallback.onSend(message)
         callback.onEnd()
     }
@@ -140,25 +141,25 @@ class TimeFragment : SuperFragment() {
 }
 
 class ValueFragment : SuperFragment() {
-    private lateinit var _gas : Spinner
-    private lateinit var _comp : Spinner
-    private lateinit var _value : EditText
+    private lateinit var mmGas : Spinner
+    private lateinit var mmComp : Spinner
+    private lateinit var mmValue : EditText
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.value_fragment, container, false)
 
-        _value = view.findViewById(R.id.ValueFragmentValue)
+        mmValue = view.findViewById(R.id.ValueFragmentValue)
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _gas = view.findViewById(R.id.ValueFragmentGas)
-        _gas.adapter = gasArrayAdapter
+        mmGas = view.findViewById(R.id.ValueFragmentGas)
+        mmGas.adapter = gasArrayAdapter
 
         val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,compArray)
         comparatorArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _comp = view.findViewById(R.id.ValueFragmentComparator)
-        _comp.adapter = comparatorArrayAdapter
+        mmComp = view.findViewById(R.id.ValueFragmentComparator)
+        mmComp.adapter = comparatorArrayAdapter
 
 
         view.findViewById<Button>(R.id.ValueFragmentPosBut).setOnClickListener { send() }
@@ -168,9 +169,9 @@ class ValueFragment : SuperFragment() {
     }
 
     private fun send() {
-        val gas = _gas.selectedItem.toString()
-        val comp = _comp.selectedItem.toString()
-        val value: Float = if (_value.text.toString().isNotEmpty()) _value.text.toString().toFloat() else 0F
+        val gas = mmGas.selectedItem.toString()
+        val comp = mmComp.selectedItem.toString()
+        val value: Float = if (mmValue.text.toString().isNotEmpty()) mmValue.text.toString().toFloat() else 0F
 
         val message: String = get.getValue(gas,comp,value)
 
@@ -181,8 +182,8 @@ class ValueFragment : SuperFragment() {
 }
 
 class AlertFragment : SuperFragment() {
-    private lateinit var _gas : Spinner
-    private lateinit var _alert : Spinner
+    private lateinit var mmGas : Spinner
+    private lateinit var mmAlert : Spinner
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -190,13 +191,13 @@ class AlertFragment : SuperFragment() {
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _gas = view.findViewById(R.id.AlertFragmentGas)
-        _gas.adapter = gasArrayAdapter
+        mmGas = view.findViewById(R.id.AlertFragmentGas)
+        mmGas.adapter = gasArrayAdapter
 
         val alertArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,alertArray)
         alertArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _alert = view.findViewById(R.id.AlertFragmentAlerts)
-        _alert.adapter = alertArrayAdapter
+        mmAlert = view.findViewById(R.id.AlertFragmentAlerts)
+        mmAlert.adapter = alertArrayAdapter
 
 
         view.findViewById<Button>(R.id.AlertFragmentPosBut).setOnClickListener { send() }
@@ -207,8 +208,8 @@ class AlertFragment : SuperFragment() {
 
     private fun send() {
         val message: String = get.getAlerts(
-            _gas.selectedItem.toString(),
-            _alert.selectedItem.toString())
+            mmGas.selectedItem.toString(),
+            mmAlert.selectedItem.toString())
 
         activityCallback.onSend(message)
         callback.onEnd()
@@ -217,7 +218,7 @@ class AlertFragment : SuperFragment() {
 }
 
 class StatusFragment : SuperFragment() {
-    private lateinit var _gas : Spinner
+    private lateinit var mmGas : Spinner
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -225,8 +226,8 @@ class StatusFragment : SuperFragment() {
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
         gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        _gas = view.findViewById(R.id.StatusFragmentGas)
-        _gas.adapter = gasArrayAdapter
+        mmGas = view.findViewById(R.id.StatusFragmentGas)
+        mmGas.adapter = gasArrayAdapter
 
         view.findViewById<Button>(R.id.StatusFragmentPosBut).setOnClickListener { send() }
         view.findViewById<Button>(R.id.StatusFragmentNegBut).setOnClickListener { callback.onEnd() }
@@ -235,7 +236,7 @@ class StatusFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getStatus(_gas.selectedItem.toString())
+        val message: String = get.getStatus(mmGas.selectedItem.toString())
 
         activityCallback.onSend(message)
         callback.onEnd()
@@ -244,30 +245,30 @@ class StatusFragment : SuperFragment() {
 }
 
 class DateTimePicker : DialogFragment(), DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-    private var _year : Int = 1970
-    private var _month : Int = 1
-    private var _day : Int = 1
-    private var _hour : Int = 1
-    private var _minute : Int = 1
-    private lateinit var _tp : TimePickerDialog
+    private var mmYear : Int = 1970
+    private var mmMonth : Int = 1
+    private var mmDay : Int = 1
+    private var mmHour : Int = 1
+    private var mmMinute : Int = 1
+    private lateinit var mmTimePicker : TimePickerDialog
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
-        _year = year
-        _month = month
-        _day = dayOfMonth
-        _tp.show()
+        mmYear = year
+        mmMonth = month
+        mmDay = dayOfMonth
+        mmTimePicker.show()
     }
 
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
-        _hour = hourOfDay
-        _minute = minute
+        mmHour = hourOfDay
+        mmMinute = minute
     }
 
     fun getTime() : LocalDateTime {
-        return LocalDateTime.of(LocalDate.of(_year,_month,_day), LocalTime.of(_hour,_minute))
+        return LocalDateTime.of(LocalDate.of(mmYear,mmMonth,mmDay), LocalTime.of(mmHour,mmMinute))
     }
 
     fun setTimePicker(tp : TimePickerDialog) {
-        _tp = tp
+        mmTimePicker = tp
     }
 }
