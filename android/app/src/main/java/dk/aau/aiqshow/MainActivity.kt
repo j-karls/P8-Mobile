@@ -34,13 +34,10 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             val thing1 = msg.obj as ByteArray
             val thing = thing1.toString(Charset.defaultCharset()).take(msg.arg1)
 
-            Log.i(TAG,msg.what.toString() + " " + msg.arg1.toString() + " " + msg.arg2.toString() + " " + thing)
-
             ref.get()!!.mainText.text = thing
             when {
                 msg.what == comp.MESSAGE_READ -> Log.i("$TAG READ",thing)
                 msg.what == comp.MESSAGE_WRITE -> Log.i("$TAG WRITE",thing)
-                msg.what == comp.MESSAGE_TOAST -> Log.i("$TAG TOAST",thing)
                 msg.what == comp.MESSAGE_CONNECT -> Log.i("$TAG CONNECTED",thing)
                 msg.what == comp.MESSAGE_EMPTY -> Log.i("$TAG EMPTY", thing)
                 else -> Log.i(TAG, "ERROR")

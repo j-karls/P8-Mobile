@@ -66,7 +66,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    handler.obtainMessage(MESSAGE_ERROR, 10, -1, "Read Error".toByteArray()).sendToTarget()
+                    handler.obtainMessage(MESSAGE_ERROR, 10, ERROR_READ, "Read Error".toByteArray()).sendToTarget()
                     break
                 }
 
@@ -78,6 +78,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
             val bytes = input.toByteArray()           //converts entered String into bytes
             try {
                 mmOutStream.write(bytes)
+                handler.obtainMessage(MESSAGE_WRITE, bytes.size, -1, bytes).sendToTarget()
             } catch (e: IOException) {
             }
 
@@ -112,7 +113,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                 try {
                     fail = true
                     mmSocket.close()
-                    handler.obtainMessage(MESSAGE_ERROR, 10, -1, "!Connected".toByteArray())
+                    handler.obtainMessage(MESSAGE_ERROR, 10, ERROR_CONNECT, "!Connected".toByteArray())
                         .sendToTarget()
                 } catch (e2: IOException) {
                     //insert code to deal with this
@@ -170,10 +171,16 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
     companion object {
         const val MESSAGE_READ: Int = 0
         const val MESSAGE_WRITE: Int = 1
-        const val MESSAGE_TOAST: Int = 2
-        const val MESSAGE_CONNECT: Int = 3
-        const val MESSAGE_EMPTY: Int = 4
-        const val MESSAGE_ERROR: Int = 5
+        const val MESSAGE_CONNECT: Int = 2
+        const val MESSAGE_EMPTY: Int = 3
+        const val MESSAGE_ERROR: Int = 4
+
+        const val ERROR_CONNECT: Int = 0
+        const val ERROR_READ: Int = 1
+
+        const val CONTENT_TEXT: Int = 0
+        const val CONTENT_DATA: Int = 1
+        const val CONTENT_STUFF: Int = 2
 
         fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
             val fromDate = from.format(formatter)
@@ -206,4 +213,4 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
             return time.format(formatter)
         }
     }
-    }
+}
