@@ -87,7 +87,6 @@ public:
     double rhDiff = _rhBlue - _rhPink;
     double constPerRH = rrDiff / rhDiff;
     double htFactor = constPerRH * (rh - _rhPink) + rrPink;
-    // Serial.println(htFactor);
     return rRatio * htFactor;
   }
   double convertPPM(double analogValue) {
@@ -95,10 +94,6 @@ public:
     double rs = convertRS(vrl);
     double rRatio = rs / _r0;
     double cRRatio = convertCorrectedRRatio(rRatio, _temp, _rh);
-    // Serial.println(String(analogValue, 4));
-    // Serial.println(String(rs, 4));
-    // Serial.println(String(rRatio, 4));
-    // Serial.println(String((pow((_funcConstantA / rRatio), (1 / -_funcConstantB))), 4));
     return pow((cRRatio / _funcConstantA), (1 / _funcConstantB)); 
     // A power function of the form PPM(RRatio) = (a / RRatio) ^ (1 / b)
   }
@@ -114,7 +109,6 @@ public:
     _numMeasurements = 0;
     _aggregatedValue = 0;
     canGetNewValue = false;
-    // Serial.println(String(aggs, 4) + " " + String(nums, 4));
     return String(aggs / nums, 4); // return average
   }
   void cool() { // turn off heating pin
@@ -171,7 +165,7 @@ public:
     }
     // otherwise, we´re currently heating, and should continue to do so
   }
-  void manageStateOnlyHeating(unsigned long currentTime) { // a replacement "manage state" method, just to test how the results look if we heat all the time
+  void manageStateOnlyHeating(unsigned long currentTime) { // a replacement "manage state" method, used for testing purposes
     if (_cycleStartTime == 0) { // if we have not yet started a cycle
       startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
       heat();
@@ -209,10 +203,7 @@ public:
     _bBlue = -0.027;
     _cBlue = 1.399;
   }
-  void manageState(unsigned long currentTime) {
-    // Serial.println(getRawValue());
-    // Serial.println(_r0);
-    
+  void manageState(unsigned long currentTime) {   
     if (_cycleStartTime == 0) { // if we have not yet started a cycle
       startNewCycle(currentTime); // sets cycle time and starts the cycle by heating 
       heat();
@@ -252,7 +243,6 @@ public:
     _aggTemperature = 0;
     _numMeasurements = 0;
     canGetNewValue = false;
-    // return String("humidity: " + String(humidity) + " %, Temperature: " + String(temperature) + " *C");
     return String(String(humidity) + "|" + String(temperature));
   }
   SensorAM2302(int pinDigital) : _localAM2302(pinDigital) {
@@ -307,7 +297,6 @@ public:
   }
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Methods
 
@@ -318,14 +307,6 @@ void delaySec(int sec)
   Serial.print("Waiting... ");
   Serial.println(sec);
   delaySec(sec - 1);
-}
-
-void serialPrintResult(Sensor *sensor) {
-  Serial.println(String(sensor->sensorName + "|" + sensor->getValue()));
-}
-
-void serialPrintResult(Sensor *sensor, String sensorValue) {
-  Serial.println(String(sensor->sensorName + "|" + sensorValue));
 }
 
 void serialPrintResult(String gasName, double value) {
@@ -354,28 +335,18 @@ void setup()
   sensorMQ7.calibrate();
   sensorMQ135.calibrate();
   sensorAM2302.calibrate();
-
-  // pinMode(4, OUTPUT);
 }
 
 void loop()
 {
-/*  delay(5000);
-  digitalWrite(4, HIGH);
-  delay(5000);
-  digitalWrite(4, LOW);
-*/
-//  Serial.println("Penis");
   delay(1000);
   currentTime = millis(); 
 
   // Get new value
   if (sensorMQ7.canGetNewValue) {
-    // serialPrintResult(&sensorMQ7);
     serialPrintResult(String("CO"), sensorMQ7.getValue());
   }
   if (sensorMQ135.canGetNewValue) {
-    // serialPrintResult(&sensorMQ135);
     serialPrintResult(String("CO2"), sensorMQ135.getValue());
   }
   if (sensorAM2302.canGetNewValue) {
@@ -383,7 +354,6 @@ void loop()
     int delimiter = val.indexOf("|");
     double hum = val.substring(0, delimiter).toDouble(); 
     double temp = val.substring(delimiter + 1).toDouble();
-    // serialPrintResult(&sensorAM2302, String("RH%:" + String(hum) + "|" + "Temp°C:" + String(temp)));
     serialPrintResult(String("Temp"), temp);
     serialPrintResult(String("Hum"), hum);
 
@@ -397,6 +367,6 @@ void loop()
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
 
-//  Serial.println("MQ7:" + String(sensorMQ7.getRawValue(), 4));
-//  Serial.println("MQ135:" + String(sensorMQ135.getRawValue(), 4));
+//  Serial.println("MQ7:" + String(sensorMQ7.getRawValue()));
+//  Serial.println("MQ135:" + String(sensorMQ135.getRawValue()));
 }
