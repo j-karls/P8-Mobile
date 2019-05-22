@@ -8,23 +8,23 @@ import sqlite3
 from threading import Thread
 from serial.serialutil import SerialException
 
-DBFILE = '~/Desktop/data.sqlite'
+DBFILE = '/home/pi/Desktop/data.sqlite'
 DBCOMMITRATE = 10 #Secs
 
 #Bindings
-bindings = [('CO', 'longterm'),
+bindings = [('CO', 'shortterm'),
 	('CO2', 'shortterm'),
-	('NO', 'shortterm')]
+	('Temp', 'shortterm'),
+	('Hum', 'shortterm')]
 
 def main():
-	print('Initializing serial reader...')
+	#print('Initializing serial reader...')
 	ports = []
 	threads = []
 	while True:
 		for port in findPorts():
 			if port not in ports:
 				ports.append(port)
-				
 				print('Device ' + port + ' connected!')
 				for port in ports:
 					try:
@@ -42,7 +42,7 @@ def main():
 					threads.remove([t, port])
 				except Exception as e:
 					pass
-					
+
 def findPorts():
 	ports = glob.glob('/dev/ttyACM[0-9]*')
 	return ports
@@ -55,20 +55,23 @@ def reader(port):
 	#Serial comms connection
 	try:
 		ser = serial.Serial(port)
-		ser.baudrate = 115200
+		ser.baudrate = 9600
 	except SerialException as e:
-			print('Device ' + port + ' disconnected!')
+			print('Serialreader: Device ' + port + ' disconnected!')
 
 	while(True):
 		try:
 			line = ser.readline().decode('utf-8')
 		except SerialException as e:
-			print('Device ' + port + ' disconnected!')
+			print('Serialreader: Device ' + port + ' disconnected!')
 			break
-		type, value = line.strip().split(',')
-		print('Recieved: ', type, ' : ', value)
-		handleData(type, value, dbconn)
-		time.sleep(DBCOMMITRATE)
+		try:
+			type, value = line.strip().split(':')
+			#print('Serialreader: Recieved: ', type, ' : ', value)
+			handleData(type, value, dbconn)
+		except ValueError as e:
+			print('Serialreader: ' + str(e))
+		#time.sleep(DBCOMMITRATE)
 
 def handleData(type, value, dbconn):
 	for x in bindings:

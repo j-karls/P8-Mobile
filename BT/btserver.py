@@ -21,23 +21,30 @@ def APIService(client, addr, cfg):
 			break
 		str = data.decode('utf-8')
 		print('Received data: ' + str)
+
 		# Compile string to a SQL query
-		#sqlcommand = Compile('GET co2 value < 200')
+		#sqlcommand = Compile('GET co2 value < 6000')
+
+		try:
+			sqlcommand = Compile(str)
+		except:
+			print('Compilation failed, syntax error in input: ' + str)
+			client.send('SYNTAX_ERROR'.encode('utf-8'))
+
 		#sqlcommand = 'SELECT * FROM config WHERE mac = "{}"'.format(addr[0])
-		sqlcommand = 'SELECT * FROM shortterm WHERE type ="co2" AND value < 220'
-		print('Generated SQL query: ' + sqlcommand)
+		#sqlcommand = 'SELECT * FROM shortterm WHERE type ="co2" AND value < 220'
+		print('SQL query: ' + sqlcommand)
 		try:
 			# Execute generated sql command, against local db
 			result = readFromDatabase(sqlcommand)
 			# Convert result (rows) to a json object
 			jsonObj = json.dumps(result)
-			# Send
 			y = jsonObj
+			#y = 'Negermand'
 			print('Sending: ' + y)
-			client.send(y.encode())
+			client.send(y.encode('utf-8'))
 		except BluetoothError as e:
 			print(e)
-			client.send('ERROR-1'.encode())
 	client.close()
 
 def readFromDatabase(sql):
@@ -72,6 +79,7 @@ def main(args):
 	server_sock.listen(100)
 
 	uuid = '94f39d29-7d6d-437d-973b-fba39e49d4ee'
+	#uuid = '00001101-0000-1000-8000-00805f9b34fb'
 	advertise_service(server_sock, name="CreamPi",service_id=uuid,
 				service_classes=[SERIAL_PORT_CLASS],
 				profiles=[SERIAL_PORT_PROFILE])

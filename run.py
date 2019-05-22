@@ -8,6 +8,7 @@ import time as tm
 import os
 
 files = ['BT/btserver.py', 'serialreader.py', 'dbmaintainer.py']
+#files = ['BT/btserver.py']
 
 def run(filename):
 	while True:
