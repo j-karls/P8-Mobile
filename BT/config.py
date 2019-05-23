@@ -28,11 +28,14 @@ class Configuration():
 			self.__mac = mac[0]
 			self.save()
 
+	def getAlertSetting(self):
+		return self.__alert
+
 	# Load config from db
 	def load(self):
 		db = self.createConnection()
 		cursor = db.cursor()
-		cursor.execute("SELECT mac FROM config WHERE mac=?", (self.__mac,))
+		cursor.execute("SELECT * FROM config WHERE mac=?", (self.__mac,))
 		data = cursor.fetchone()
 		try:
 			self.__mac = data[0]

@@ -6,7 +6,7 @@ from antlr4.tree.Trees import Trees
 from antlr4.error.ErrorListener import ErrorListener
 from antlr.LanguageVisitor import LanguageVisitor
 
-def Compile(input):
+def Compile(input, cfg):
 	lexer = LanguageLexer(InputStream(input))
 	stream = CommonTokenStream(lexer)
 	parser = LanguageParser(stream)
@@ -17,7 +17,7 @@ def Compile(input):
 	except Exception as e:
 		print(e)
 
-	visitor = LanguageVisitor()
+	visitor = LanguageVisitor(cfg)
 	query = visitor.visitS(tree)
 	#print('query string: ' + query)
 	return query

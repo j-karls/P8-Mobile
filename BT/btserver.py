@@ -16,6 +16,19 @@ DBFILE = '/home/pi/Desktop/data.sqlite'
 def APIService(client, addr, cfg):
 	print("Ready for comms with client " , addr[0])
 	while True:
+		#If client has a config for wanthing alerts, then dispatch alert thread
+		if cfg.getAlertSetting() == 1:
+			alertThread = Thread(target=alert, args=(client, cfg))
+			alertThread.start()
+			print('Client ' + addr[0] + ' is subscribed to receive alerts.')
+		elif cfg.getAlertSetting() == 0:
+			print('Client ' + addr[0] + ' is not subscribed to recieve alerts.')
+			try:
+				if alertThread.is_alive():
+					alertThread.stop()
+			except NameError:
+				pass
+
 		data = client.recv(1024)
 		if not data:
 			break
@@ -23,16 +36,13 @@ def APIService(client, addr, cfg):
 		print('Received data: ' + str)
 
 		# Compile string to a SQL query
-		#sqlcommand = Compile('GET co2 value < 6000')
-
 		try:
-			sqlcommand = Compile(str)
+			sqlcommand = Compile(str, cfg)
 		except:
-			print('Compilation failed, syntax error in input: ' + str)
+			print('Query translation failed, syntax error in input: ' + str)
 			client.send('SYNTAX_ERROR'.encode('utf-8'))
 
 		#sqlcommand = 'SELECT * FROM config WHERE mac = "{}"'.format(addr[0])
-		#sqlcommand = 'SELECT * FROM shortterm WHERE type ="co2" AND value < 220'
 		print('SQL query: ' + sqlcommand)
 		try:
 			# Execute generated sql command, against local db
@@ -40,12 +50,30 @@ def APIService(client, addr, cfg):
 			# Convert result (rows) to a json object
 			jsonObj = json.dumps(result)
 			y = jsonObj
-			#y = 'Negermand'
 			print('Sending: ' + y)
 			client.send(y.encode('utf-8'))
 		except BluetoothError as e:
 			print(e)
 	client.close()
+
+def alert(client, cfg):
+	while True:
+		# Fetch and check if values are beyond limits...
+		# if so, send alert message(s) to client
+		factors = ('CO2', 'CO', 'Temp', 'Hum')
+		for f in factors:
+			sql = Compile('GET '+f+' status', cfg)
+			res = readFromDatabase(sql)[0]
+			type = res[0]
+			value = res[1]
+			if limitExceeded(type, value):
+				print('Limit exceeded for ' + type + ' with value: ' + str(value))
+				client.send(('LIMIT_'+type).encode('utf-8'))
+		t.sleep(10)
+		# We break this loop by killing the thread
+
+def limitExceeded(type, value):
+	return True
 
 def readFromDatabase(sql):
 	try:
@@ -65,7 +93,7 @@ def handleClient(client, addr):
 		cfg = Configuration(addr)
 		APIService(client, addr, cfg)
 	except BluetoothError as e:
-		print(e)
+		print('Client disconnected: ' + str(addr) + '\nError: ' + str(e))
 		pass
 
 def main(args):

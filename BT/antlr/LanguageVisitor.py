@@ -10,12 +10,15 @@ else:
 
 class LanguageVisitor(ParseTreeVisitor):
 
-    def __init__(self):
+    def __init__(self, cfg):
         self.__query = ''
+        self.__cfg = cfg
         self.__bindings = [('CO', 'shortterm'),
                 ('CO2', 'shortterm'),
                 ('Temp', 'shortterm'),
                 ('Hum', 'shortterm')]
+        self.table = ''
+        self.type = ''
 
     def append(self, str):
         self.__query += str
@@ -32,7 +35,9 @@ class LanguageVisitor(ParseTreeVisitor):
         for x in self.__bindings:
                 _type, _table = x
                 if(_type.upper() == str(ctx.STRING()).upper()):
-                        self.append('SELECT * FROM {} WHERE type = "{}" AND'.format(_table, _type))
+                        self.append('SELECT type,value,time FROM {} WHERE type = "{}" AND'.format(_table, _type))
+                        self.table = _table
+                        self.type = _type
         return self.visitChildren(ctx)
 
 
@@ -72,6 +77,8 @@ class LanguageVisitor(ParseTreeVisitor):
     # Visit a parse tree produced by LanguageParser#getStatusExpr.
     def visitGetStatusExpr(self, ctx:LanguageParser.GetStatusExprContext):
         # respond with status data
+        #self.append(' time = (SELECT MAX(time) FROM ' + self.table + ')')
+        self.__query = 'SELECT type,value,MAX(time) FROM ' + self.table + ' WHERE type = "{}"'.format(self.type)
         return self.visitChildren(ctx)
 
 
