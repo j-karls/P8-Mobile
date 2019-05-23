@@ -36,7 +36,11 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
     private inner class CommunicationThread : Thread() {
         private lateinit var mmInStream: InputStream
         private lateinit var mmOutStream: OutputStream
+        private var running = true
 
+        override fun interrupt() {
+            running = false
+        }
 
         override fun run() {
             try {
@@ -49,17 +53,17 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
             var buffer: ByteArray  // buffer store for the stream
             var bytes: Int // bytes returned from read()
             // Keep listening to the InputStream until an exception occurs
-            while (true) {
+            while (running) {
                 try {
                     // Read from the InputStream
                     bytes = mmInStream.available()
                     if (bytes != 0) {
-                        buffer = ByteArray(1024)
+                        buffer = ByteArray(20000)
                         SystemClock.sleep(100) //pause and wait for rest of data. Adjust this depending on your sending speed.
                         bytes = mmInStream.available() // how many bytes are ready to be read?
                         bytes = mmInStream.read(buffer, 0, bytes) // record how many bytes we actually read
 
-                        if (bytes != 0)
+                        if (bytes > 2)
                             handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget()
                         else
                             handler.obtainMessage(MESSAGE_EMPTY, bytes, -1, buffer).sendToTarget()
@@ -87,8 +91,10 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         /* Call this from the main activity to shutdown the connection */
         fun cancel() {
             try {
-                mmSocket.close()
                 this.interrupt()
+                sleep(100)
+                mmSocket.close()
+                handler.obtainMessage(MESSAGE_CONNECT, 12, 0, "Disconnected".toByteArray()).sendToTarget()
             } catch (e: IOException) {
             }
 
@@ -113,10 +119,10 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                 try {
                     fail = true
                     mmSocket.close()
-                    handler.obtainMessage(MESSAGE_ERROR, 10, ERROR_CONNECT, "!Connected".toByteArray())
+                    handler.obtainMessage(MESSAGE_ERROR, e.toString().length, ERROR_CONNECT, e.toString().toByteArray())
                         .sendToTarget()
                 } catch (e2: IOException) {
-                    //insert code to deal with this
+                    Log.e(TAG, "SUPER ERROR $e2")
                 }
 
             }
@@ -124,7 +130,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
             if (!fail) {
                 mmCommThread.start()
 
-                handler.obtainMessage(MESSAGE_CONNECT, 9, -1, "Connected".toByteArray())
+                handler.obtainMessage(MESSAGE_CONNECT, 9, 1, "Connected".toByteArray())
                     .sendToTarget()
             }
         }
@@ -197,8 +203,12 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
             return ("$gasType value $compare $value")
         }
 
-        fun getAlerts(gasType: String, alertType: String = "predicted"): String {
-            return ("$gasType alerts = $alertType")
+        fun subAlerts(): String {
+            return ("alerts = on") //TODO: HVAD FUCK HEDDER ALERTS
+        }
+
+        fun unSubAlerts(): String {
+            return ("alerts = off")
         }
 
         fun getStatus(gasType: String): String {

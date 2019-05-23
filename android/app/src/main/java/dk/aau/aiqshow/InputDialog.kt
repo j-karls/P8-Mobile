@@ -41,7 +41,7 @@ class InputDialog : DialogFragment(),AdapterView.OnItemSelectedListener, SuperFr
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
-        throw Exception("_option array is empty")
+        throw Exception("mmOption array is empty")
     }
 
     override fun onEnd() {

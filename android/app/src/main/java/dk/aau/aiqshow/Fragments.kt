@@ -19,7 +19,8 @@ import java.time.LocalTime
 open class SuperFragment : Fragment() {
 
     protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
-    protected val compArray = arrayOf("=",">","<")
+    protected val compArray = arrayOf("Equal to","More than","Less than")
+    protected val compValueArray = arrayOf("=",">","<")
     protected val alertArray = arrayOf("predicted", "immediate")
     protected lateinit var callback: DialogListener
     protected lateinit var activityCallback: InputListener
@@ -48,6 +49,11 @@ open class SuperFragment : Fragment() {
             throw ClassCastException(parentFragment?.toString()
                     + " must implement InputListener")
         }
+    }
+
+    fun sendMessage(message : String) {
+        activityCallback.onSend(message)
+        callback.onEnd()
     }
 
 }
@@ -94,8 +100,8 @@ class TimeIntervalFragment : SuperFragment() {
     private fun send() {
         val message: String = get.getTimeInterval(mmGas.selectedItem.toString(), mmDateListenerFrom.getTime(),
             mmDateListenerTo.getTime())
-        activityCallback.onSend(message)
-        callback.onEnd()
+
+        sendMessage(message)
     }
 }
 
@@ -133,11 +139,14 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getTime(mmGas.selectedItem.toString(),mmComp.selectedItem.toString(),mmDateListener.getTime())
-        activityCallback.onSend(message)
-        callback.onEnd()
-    }
+        val gas = mmGas.selectedItem.toString()
+        val comp = compValueArray[mmComp.selectedItemPosition]
+        val time = mmDateListener.getTime()
 
+        val message: String = get.getTime(gas,comp,time)
+
+        sendMessage(message)
+    }
 }
 
 class ValueFragment : SuperFragment() {
@@ -170,13 +179,12 @@ class ValueFragment : SuperFragment() {
 
     private fun send() {
         val gas = mmGas.selectedItem.toString()
-        val comp = mmComp.selectedItem.toString()
+        val comp = compValueArray[mmComp.selectedItemPosition]
         val value: Float = if (mmValue.text.toString().isNotEmpty()) mmValue.text.toString().toFloat() else 0F
 
         val message: String = get.getValue(gas,comp,value)
 
-        activityCallback.onSend(message)
-        callback.onEnd()
+        sendMessage(message)
     }
 
 }
@@ -189,16 +197,6 @@ class AlertFragment : SuperFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.alert_fragment, container, false)
 
-        val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
-        gasArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        mmGas = view.findViewById(R.id.AlertFragmentGas)
-        mmGas.adapter = gasArrayAdapter
-
-        val alertArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,alertArray)
-        alertArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        mmAlert = view.findViewById(R.id.AlertFragmentAlerts)
-        mmAlert.adapter = alertArrayAdapter
-
 
         view.findViewById<Button>(R.id.AlertFragmentPosBut).setOnClickListener { send() }
         view.findViewById<Button>(R.id.AlertFragmentNegBut).setOnClickListener { callback.onEnd() }
@@ -207,12 +205,9 @@ class AlertFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getAlerts(
-            mmGas.selectedItem.toString(),
-            mmAlert.selectedItem.toString())
+        val message: String = get.subAlerts()
 
-        activityCallback.onSend(message)
-        callback.onEnd()
+        sendMessage(message)
     }
 
 }
@@ -238,8 +233,7 @@ class StatusFragment : SuperFragment() {
     private fun send() {
         val message: String = get.getStatus(mmGas.selectedItem.toString())
 
-        activityCallback.onSend(message)
-        callback.onEnd()
+        sendMessage(message)
     }
 
 }

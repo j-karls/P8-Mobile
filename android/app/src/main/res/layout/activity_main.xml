@@ -30,7 +30,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/buttonDisconnect" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"
-            android:layout_marginBottom="64dp" app:layout_constraintBottom_toBottomOf="parent"/>
+            android:layout_marginBottom="64dp" app:layout_constraintBottom_toBottomOf="parent"
+            android:enabled="false"/>
     <Button
             android:text="Write"
             android:layout_width="wrap_content"
@@ -38,18 +39,20 @@
             android:id="@+id/buttonWrite" app:layout_constraintStart_toEndOf="@+id/buttonConnect"
             android:layout_marginStart="8dp" app:layout_constraintEnd_toStartOf="@+id/buttonDisconnect"
             android:layout_marginEnd="8dp" android:layout_marginBottom="64dp"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    <!--<fragment
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:name="dk.aau.aiqshow.WriteFragment"
-            android:id="@+id/fragment"
-            tools:layout="@layout/write_fragment" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="8dp"
-            app:layout_constraintTop_toTopOf="parent"/> -->
+            app:layout_constraintBottom_toBottomOf="parent" android:enabled="false"/>
 
+    <Button
+            android:text="Stuff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/stuffButton"
+            android:layout_marginBottom="52dp"
+            app:layout_constraintBottom_toTopOf="@+id/buttonDisconnect" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="8dp" app:layout_constraintHorizontal_bias="0.482"/>
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/writeFragment"
-            android:layout_margin="5dp"/>
+            android:layout_margin="5dp">
+    </FrameLayout>
 </android.support.constraint.ConstraintLayout>
