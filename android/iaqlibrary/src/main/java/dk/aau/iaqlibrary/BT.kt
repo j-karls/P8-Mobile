@@ -204,7 +204,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         }
 
         fun subAlerts(): String {
-            return ("alerts = on") //TODO: HVAD FUCK HEDDER ALERTS
+            return ("alerts = on")
         }
 
         fun unSubAlerts(): String {

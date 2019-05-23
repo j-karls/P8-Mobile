@@ -12,15 +12,29 @@ import dk.aau.iaqlibrary.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
 import android.support.v4.app.FragmentManager
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import kotlinx.android.synthetic.main.recycler.view.*
 import org.json.JSONArray
 import dk.aau.iaqlibrary.BluetoothService.Companion as comp
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
+data class DataReading(val gasType: String, val value: Float, val time: LocalDateTime) {
+    override fun toString(): String {
+        return "Gas: $gasType, Value: ${value.roundToInt()}, Time: $time"
+    }
+}
 
 class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
@@ -31,9 +45,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
     private val mmManager: FragmentManager = supportFragmentManager
     private lateinit var mmDevice : BluetoothDevice
     private lateinit var mmBTService : BluetoothService
-
-
-    data class dataReading(val gasType: String, val value: Float, val time: LocalDateTime)
+    private lateinit var recyclerView: RecyclerView
 
 
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
@@ -49,7 +61,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                 msg.what == comp.MESSAGE_CONNECT -> {Log.i("$TAG CONNECTION",thing); connect(msg.arg2)
                     ref.get()!!.mainText.text = thing}
                 msg.what == comp.MESSAGE_EMPTY -> Log.i("$TAG EMPTY", thing)
-                msg.what == comp.MESSAGE_ERROR -> {Log.i("$TAG ERROR", thing);
+                msg.what == comp.MESSAGE_ERROR -> {Log.i("$TAG ERROR", thing)
                     if (msg.arg2 == comp.ERROR_CONNECT)
                         ref.get()!!.mainText.text = "Connection Error"
                 }
@@ -67,19 +79,22 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                 //Log.i(TAG,data)
                 Log.i("$TAG SIZE",size.toString() + " " + data.length.toString())
                 val json = jsonStuff(JSONArray(data))
-                Log.i("$TAG JSON",json[0].gasType)
+
+                ref.get()!!.recyclerView.adapter = DataAdapter(json.toTypedArray())
+                ref.get()!!.recyclerView.adapter?.notifyDataSetChanged()
+
                 data = ""
             }
         }
 
-        fun jsonStuff(array: JSONArray) : List<dataReading> {
-            val list: MutableList<dataReading> = mutableListOf()
+        fun jsonStuff(array: JSONArray) : List<DataReading> {
+            val list: MutableList<DataReading> = mutableListOf()
             var i = 0
             while (!array.isNull(i)) {
                 val type = array.getJSONArray(i).getString(0)
                 val value = array.getJSONArray(i).getDouble(1)
                 val time = array.getJSONArray(i).getString(2)
-                list.add(dataReading(type,value.toFloat(), LocalDateTime.parse("${time.substring(0..9)}T${time.substring(11)}")))
+                list.add(DataReading(type,value.toFloat(), LocalDateTime.parse("${time.substring(0..9)}T${time.substring(11)}")))
                 i++
             }
             return list.toList()
@@ -87,7 +102,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
 
         private fun connect(type: Int) {
-            if (type == 1) {
+            if (type == 1) { // connected
                 ref.get()!!.buttonDisconnect.isEnabled = true
                 ref.get()!!.buttonWrite.isEnabled = true
                 ref.get()!!.buttonConnect.isEnabled = false
@@ -119,6 +134,21 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             }
         }
 
+
+
+        recyclerView = findViewById<RecyclerView>(R.id.Recycler).apply {
+            // use this setting to improve performance if you know that changes
+            // in content do not change the layout size of the RecyclerView
+            //setHasFixedSize(true)
+
+            // use a linear layout manager
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            // specify an viewAdapter (see also next example)
+            adapter = DataAdapter(arrayOf())
+
+        }
+
+
         buttonConnect.setOnClickListener {
             mmBTService = BluetoothService(mmHandler, device)
             mmBTService.connect()
@@ -148,5 +178,25 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         mainText.text = text
         mmBTService.get(text)
     }
+
+}
+
+class DataAdapter(private val dataSet: Array<DataReading>) : RecyclerView.Adapter<DataAdapter.MyViewHolder>() {
+
+    inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+
+    override fun onCreateViewHolder(p0: ViewGroup, p1: Int): MyViewHolder {
+        val view = LayoutInflater.from(p0.context).inflate(R.layout.recycler, p0, false)
+
+        return MyViewHolder(view)
+    }
+
+    override fun getItemCount(): Int = dataSet.size
+
+    override fun onBindViewHolder(p0: MyViewHolder, p1: Int) {
+        p0.view.textView.text = dataSet[p1].toString()
+    }
+
+
 
 }
