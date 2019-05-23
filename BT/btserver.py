@@ -5,10 +5,10 @@ from threading import Thread
 from config import Configuration
 from antlr.compiler import Compile
 import json
-import pickle
 import sqlite3
 from sqlite3 import Error
 import time as t
+import aqicalculator as aqi
 
 # Absolute path to sqlite3 database
 DBFILE = '/home/pi/Desktop/data.sqlite'
@@ -16,16 +16,19 @@ DBFILE = '/home/pi/Desktop/data.sqlite'
 def APIService(client, addr, cfg):
 	print("Ready for comms with client " , addr[0])
 	while True:
-		#If client has a config for wanthing alerts, then dispatch alert thread
+		# If client has a config for wanthing alerts, then dispatch alert thread
 		if cfg.getAlertSetting() == 1:
-			alertThread = Thread(target=alert, args=(client, cfg))
-			alertThread.start()
-			print('Client ' + addr[0] + ' is subscribed to receive alerts.')
+			try:
+				alertThread.is_alive()
+			except NameError:
+				alertThread = Thread(target=alert, args=(client, cfg))
+				alertThread.start()
+				print('Client ' + addr[0] + ' is subscribed to receive alerts.')
 		elif cfg.getAlertSetting() == 0:
-			print('Client ' + addr[0] + ' is not subscribed to recieve alerts.')
 			try:
 				if alertThread.is_alive():
 					alertThread.stop()
+					print('Client ' + addr[0] + 'is no longer subscribed to receive alerts.')
 			except NameError:
 				pass
 
@@ -36,6 +39,7 @@ def APIService(client, addr, cfg):
 		print('Received data: ' + str)
 
 		# Compile string to a SQL query
+		sqlcommand = None
 		try:
 			sqlcommand = Compile(str, cfg)
 		except:
@@ -43,37 +47,41 @@ def APIService(client, addr, cfg):
 			client.send('SYNTAX_ERROR'.encode('utf-8'))
 
 		#sqlcommand = 'SELECT * FROM config WHERE mac = "{}"'.format(addr[0])
-		print('SQL query: ' + sqlcommand)
-		try:
-			# Execute generated sql command, against local db
-			result = readFromDatabase(sqlcommand)
-			# Convert result (rows) to a json object
-			jsonObj = json.dumps(result)
-			y = jsonObj
-			print('Sending: ' + y)
-			client.send(y.encode('utf-8'))
-		except BluetoothError as e:
-			print(e)
+		if sqlcommand is not None:
+			print('SQL query: ' + sqlcommand)
+			try:
+				# Execute generated sql command, against local db
+				result = readFromDatabase(sqlcommand)
+				# Convert result (rows) to a json object
+				jsonObj = json.dumps(result)
+				print('Sending: ' + jsonObj)
+				client.send(jsonObj.encode('utf-8'))
+			except BluetoothError as e:
+				print(e)
 	client.close()
 
 def alert(client, cfg):
 	while True:
 		# Fetch and check if values are beyond limits...
 		# if so, send alert message(s) to client
-		factors = ('CO2', 'CO', 'Temp', 'Hum')
-		for f in factors:
-			sql = Compile('GET '+f+' status', cfg)
-			res = readFromDatabase(sql)[0]
-			type = res[0]
-			value = res[1]
-			if limitExceeded(type, value):
-				print('Limit exceeded for ' + type + ' with value: ' + str(value))
-				client.send(('LIMIT_'+type).encode('utf-8'))
-		t.sleep(10)
-		# We break this loop by killing the thread
+		#factors = ('CO2', 'CO', 'Temp', 'Hum')
+		co2val = readFromDatabase(Compile('GET CO2 status', cfg))[0][1]
+		coval = readFromDatabase(Compile('GET CO status', cfg))[0][1]
+		tempval = readFromDatabase(Compile('GET Temp status',cfg))[0][1]
+		humval = readFromDatabase(Compile('GET Hum status',cfg))[0][1]
 
-def limitExceeded(type, value):
-	return True
+		res = aqi.aqicompare(co2val, coval, tempval, humval)
+		if res['problem'] != 'ALL_FACTORS_OK':
+			try:
+				client.getpeername()
+			except:
+				break
+			print('Problem:\t' + str(res['problem']))
+			print('Solution:\t'+ str(res['solution']))
+			jsonObj = json.dumps(res)
+			client.send(jsonObj.encode('utf-8'))
+			t.sleep(60)
+		# We break this loop by killing the thread from the outside
 
 def readFromDatabase(sql):
 	try:
@@ -98,16 +106,13 @@ def handleClient(client, addr):
 
 def main(args):
 	createDatabase(DBFILE)
-
 	server_sock = BluetoothSocket(RFCOMM)
 	server_port = PORT_ANY
 	server_address = '', server_port
-
 	server_sock.bind(server_address)
 	server_sock.listen(100)
 
 	uuid = '94f39d29-7d6d-437d-973b-fba39e49d4ee'
-	#uuid = '00001101-0000-1000-8000-00805f9b34fb'
 	advertise_service(server_sock, name="CreamPi",service_id=uuid,
 				service_classes=[SERIAL_PORT_CLASS],
 				profiles=[SERIAL_PORT_PROFILE])
