@@ -1,13 +1,13 @@
 grammar Language;
 
 s
-	: cmd (andexpr cmd)*
+	: cmd
 	;
 
 cmd
-	: 'GET' STRING getexpr (andexpr getexpr)* 			#getCommand
-	| 'SET' setexpr (andexpr setexpr)*               	#setCommand
-	| 'GET' 'config'									#getCfgCommand
+	: 'GET' STRING getexpr				#getCommand
+	| 'SET' setexpr               		#setCommand
+	| 'GET' 'config'					#getCfgCommand
     ;
 
 getexpr
@@ -31,8 +31,6 @@ compare
 	;
 
 assign: EQ;
-
-andexpr: AND;
 
 ALERTTYPE
     : 'true'

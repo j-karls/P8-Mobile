@@ -9,31 +9,24 @@ import sys
 def serializedATN():
     with StringIO() as buf:
         buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\32")
-        buf.write("R\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b")
-        buf.write("\t\b\3\2\3\2\3\2\3\2\7\2\25\n\2\f\2\16\2\30\13\2\3\3\3")
-        buf.write("\3\3\3\3\3\3\3\3\3\7\3 \n\3\f\3\16\3#\13\3\3\3\3\3\3\3")
-        buf.write("\3\3\3\3\7\3*\n\3\f\3\16\3-\13\3\3\3\3\3\5\3\61\n\3\3")
-        buf.write("\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\5\4")
-        buf.write("@\n\4\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\5\5J\n\5\3\6\3\6")
-        buf.write("\3\7\3\7\3\b\3\b\3\b\2\2\t\2\4\6\b\n\f\16\2\3\3\2\21\25")
-        buf.write("\2S\2\20\3\2\2\2\4\60\3\2\2\2\6?\3\2\2\2\bI\3\2\2\2\n")
-        buf.write("K\3\2\2\2\fM\3\2\2\2\16O\3\2\2\2\20\26\5\4\3\2\21\22\5")
-        buf.write("\16\b\2\22\23\5\4\3\2\23\25\3\2\2\2\24\21\3\2\2\2\25\30")
-        buf.write("\3\2\2\2\26\24\3\2\2\2\26\27\3\2\2\2\27\3\3\2\2\2\30\26")
-        buf.write("\3\2\2\2\31\32\7\3\2\2\32\33\7\17\2\2\33!\5\6\4\2\34\35")
-        buf.write("\5\16\b\2\35\36\5\6\4\2\36 \3\2\2\2\37\34\3\2\2\2 #\3")
-        buf.write("\2\2\2!\37\3\2\2\2!\"\3\2\2\2\"\61\3\2\2\2#!\3\2\2\2$")
-        buf.write("%\7\4\2\2%+\5\b\5\2&\'\5\16\b\2\'(\5\b\5\2(*\3\2\2\2)")
-        buf.write("&\3\2\2\2*-\3\2\2\2+)\3\2\2\2+,\3\2\2\2,\61\3\2\2\2-+")
-        buf.write("\3\2\2\2./\7\3\2\2/\61\7\5\2\2\60\31\3\2\2\2\60$\3\2\2")
-        buf.write("\2\60.\3\2\2\2\61\5\3\2\2\2\62\63\7\6\2\2\63\64\5\n\6")
-        buf.write("\2\64\65\7\20\2\2\65@\3\2\2\2\66\67\7\6\2\2\678\7\20\2")
-        buf.write("\289\7\7\2\29@\7\20\2\2:;\7\b\2\2;<\5\n\6\2<=\7\r\2\2")
-        buf.write("=@\3\2\2\2>@\7\t\2\2?\62\3\2\2\2?\66\3\2\2\2?:\3\2\2\2")
-        buf.write("?>\3\2\2\2@\7\3\2\2\2AB\7\n\2\2BC\5\f\7\2CD\7\17\2\2D")
-        buf.write("J\3\2\2\2EF\7\13\2\2FG\5\f\7\2GH\7\f\2\2HJ\3\2\2\2IA\3")
-        buf.write("\2\2\2IE\3\2\2\2J\t\3\2\2\2KL\t\2\2\2L\13\3\2\2\2MN\7")
-        buf.write("\21\2\2N\r\3\2\2\2OP\7\31\2\2P\17\3\2\2\2\b\26!+\60?I")
+        buf.write("\67\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\3")
+        buf.write("\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3\30\n\3\3\4\3\4")
+        buf.write("\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\5\4\'\n\4")
+        buf.write("\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\5\5\61\n\5\3\6\3\6\3")
+        buf.write("\7\3\7\3\7\2\2\b\2\4\6\b\n\f\2\3\3\2\21\25\2\66\2\16\3")
+        buf.write("\2\2\2\4\27\3\2\2\2\6&\3\2\2\2\b\60\3\2\2\2\n\62\3\2\2")
+        buf.write("\2\f\64\3\2\2\2\16\17\5\4\3\2\17\3\3\2\2\2\20\21\7\3\2")
+        buf.write("\2\21\22\7\17\2\2\22\30\5\6\4\2\23\24\7\4\2\2\24\30\5")
+        buf.write("\b\5\2\25\26\7\3\2\2\26\30\7\5\2\2\27\20\3\2\2\2\27\23")
+        buf.write("\3\2\2\2\27\25\3\2\2\2\30\5\3\2\2\2\31\32\7\6\2\2\32\33")
+        buf.write("\5\n\6\2\33\34\7\20\2\2\34\'\3\2\2\2\35\36\7\6\2\2\36")
+        buf.write("\37\7\20\2\2\37 \7\7\2\2 \'\7\20\2\2!\"\7\b\2\2\"#\5\n")
+        buf.write("\6\2#$\7\r\2\2$\'\3\2\2\2%\'\7\t\2\2&\31\3\2\2\2&\35\3")
+        buf.write("\2\2\2&!\3\2\2\2&%\3\2\2\2\'\7\3\2\2\2()\7\n\2\2)*\5\f")
+        buf.write("\7\2*+\7\17\2\2+\61\3\2\2\2,-\7\13\2\2-.\5\f\7\2./\7\f")
+        buf.write("\2\2/\61\3\2\2\2\60(\3\2\2\2\60,\3\2\2\2\61\t\3\2\2\2")
+        buf.write("\62\63\t\2\2\2\63\13\3\2\2\2\64\65\7\21\2\2\65\r\3\2\2")
+        buf.write("\2\5\27&\60")
         return buf.getvalue()
 
 
@@ -65,10 +58,8 @@ class LanguageParser ( Parser ):
     RULE_setexpr = 3
     RULE_compare = 4
     RULE_assign = 5
-    RULE_andexpr = 6
 
-    ruleNames =  [ "s", "cmd", "getexpr", "setexpr", "compare", "assign", 
-                   "andexpr" ]
+    ruleNames =  [ "s", "cmd", "getexpr", "setexpr", "compare", "assign" ]
 
     EOF = Token.EOF
     T__0=1
@@ -111,18 +102,8 @@ class LanguageParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def cmd(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.CmdContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.CmdContext,i)
-
-
-        def andexpr(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.AndexprContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.AndexprContext,i)
+        def cmd(self):
+            return self.getTypedRuleContext(LanguageParser.CmdContext,0)
 
 
         def getRuleIndex(self):
@@ -149,23 +130,10 @@ class LanguageParser ( Parser ):
 
         localctx = LanguageParser.SContext(self, self._ctx, self.state)
         self.enterRule(localctx, 0, self.RULE_s)
-        self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 14
+            self.state = 12
             self.cmd()
-            self.state = 20
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            while _la==LanguageParser.AND:
-                self.state = 15
-                self.andexpr()
-                self.state = 16
-                self.cmd()
-                self.state = 22
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -199,17 +167,8 @@ class LanguageParser ( Parser ):
 
         def STRING(self):
             return self.getToken(LanguageParser.STRING, 0)
-        def getexpr(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.GetexprContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.GetexprContext,i)
-
-        def andexpr(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.AndexprContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.AndexprContext,i)
+        def getexpr(self):
+            return self.getTypedRuleContext(LanguageParser.GetexprContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -233,17 +192,8 @@ class LanguageParser ( Parser ):
             super().__init__(parser)
             self.copyFrom(ctx)
 
-        def setexpr(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.SetexprContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.SetexprContext,i)
-
-        def andexpr(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(LanguageParser.AndexprContext)
-            else:
-                return self.getTypedRuleContext(LanguageParser.AndexprContext,i)
+        def setexpr(self):
+            return self.getTypedRuleContext(LanguageParser.SetexprContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -289,61 +239,35 @@ class LanguageParser ( Parser ):
         localctx = LanguageParser.CmdContext(self, self._ctx, self.state)
         self.enterRule(localctx, 2, self.RULE_cmd)
         try:
-            self.state = 46
+            self.state = 21
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,3,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,0,self._ctx)
             if la_ == 1:
                 localctx = LanguageParser.GetCommandContext(self, localctx)
                 self.enterOuterAlt(localctx, 1)
-                self.state = 23
+                self.state = 14
                 self.match(LanguageParser.T__0)
-                self.state = 24
+                self.state = 15
                 self.match(LanguageParser.STRING)
-                self.state = 25
+                self.state = 16
                 self.getexpr()
-                self.state = 31
-                self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
-                while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
-                    if _alt==1:
-                        self.state = 26
-                        self.andexpr()
-                        self.state = 27
-                        self.getexpr() 
-                    self.state = 33
-                    self._errHandler.sync(self)
-                    _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
-
                 pass
 
             elif la_ == 2:
                 localctx = LanguageParser.SetCommandContext(self, localctx)
                 self.enterOuterAlt(localctx, 2)
-                self.state = 34
+                self.state = 17
                 self.match(LanguageParser.T__1)
-                self.state = 35
+                self.state = 18
                 self.setexpr()
-                self.state = 41
-                self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,2,self._ctx)
-                while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
-                    if _alt==1:
-                        self.state = 36
-                        self.andexpr()
-                        self.state = 37
-                        self.setexpr() 
-                    self.state = 43
-                    self._errHandler.sync(self)
-                    _alt = self._interp.adaptivePredict(self._input,2,self._ctx)
-
                 pass
 
             elif la_ == 3:
                 localctx = LanguageParser.GetCfgCommandContext(self, localctx)
                 self.enterOuterAlt(localctx, 3)
-                self.state = 44
+                self.state = 19
                 self.match(LanguageParser.T__0)
-                self.state = 45
+                self.state = 20
                 self.match(LanguageParser.T__2)
                 pass
 
@@ -484,48 +408,48 @@ class LanguageParser ( Parser ):
         localctx = LanguageParser.GetexprContext(self, self._ctx, self.state)
         self.enterRule(localctx, 4, self.RULE_getexpr)
         try:
-            self.state = 61
+            self.state = 36
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,4,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,1,self._ctx)
             if la_ == 1:
                 localctx = LanguageParser.GetTimeExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 1)
-                self.state = 48
+                self.state = 23
                 self.match(LanguageParser.T__3)
-                self.state = 49
+                self.state = 24
                 localctx.op = self.compare()
-                self.state = 50
+                self.state = 25
                 self.match(LanguageParser.DATE)
                 pass
 
             elif la_ == 2:
                 localctx = LanguageParser.GetTimeIntervalExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 2)
-                self.state = 52
+                self.state = 27
                 self.match(LanguageParser.T__3)
-                self.state = 53
+                self.state = 28
                 self.match(LanguageParser.DATE)
-                self.state = 54
+                self.state = 29
                 self.match(LanguageParser.T__4)
-                self.state = 55
+                self.state = 30
                 self.match(LanguageParser.DATE)
                 pass
 
             elif la_ == 3:
                 localctx = LanguageParser.GetValueExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 3)
-                self.state = 56
+                self.state = 31
                 self.match(LanguageParser.T__5)
-                self.state = 57
+                self.state = 32
                 localctx.op = self.compare()
-                self.state = 58
+                self.state = 33
                 self.match(LanguageParser.NUM)
                 pass
 
             elif la_ == 4:
                 localctx = LanguageParser.GetStatusExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 4)
-                self.state = 60
+                self.state = 35
                 self.match(LanguageParser.T__6)
                 pass
 
@@ -617,27 +541,27 @@ class LanguageParser ( Parser ):
         localctx = LanguageParser.SetexprContext(self, self._ctx, self.state)
         self.enterRule(localctx, 6, self.RULE_setexpr)
         try:
-            self.state = 71
+            self.state = 46
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [LanguageParser.T__7]:
                 localctx = LanguageParser.SetGuidelineExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 1)
-                self.state = 63
+                self.state = 38
                 self.match(LanguageParser.T__7)
-                self.state = 64
+                self.state = 39
                 localctx.op = self.assign()
-                self.state = 65
+                self.state = 40
                 self.match(LanguageParser.STRING)
                 pass
             elif token in [LanguageParser.T__8]:
                 localctx = LanguageParser.SetAlertExprContext(self, localctx)
                 self.enterOuterAlt(localctx, 2)
-                self.state = 67
+                self.state = 42
                 self.match(LanguageParser.T__8)
-                self.state = 68
+                self.state = 43
                 localctx.op = self.assign()
-                self.state = 69
+                self.state = 44
                 self.match(LanguageParser.ALERTTYPE)
                 pass
             else:
@@ -700,7 +624,7 @@ class LanguageParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 73
+            self.state = 48
             _la = self._input.LA(1)
             if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << LanguageParser.EQ) | (1 << LanguageParser.LT) | (1 << LanguageParser.GT) | (1 << LanguageParser.LTEQ) | (1 << LanguageParser.GTEQ))) != 0)):
                 self._errHandler.recoverInline(self)
@@ -751,54 +675,8 @@ class LanguageParser ( Parser ):
         self.enterRule(localctx, 10, self.RULE_assign)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 75
+            self.state = 50
             self.match(LanguageParser.EQ)
-        except RecognitionException as re:
-            localctx.exception = re
-            self._errHandler.reportError(self, re)
-            self._errHandler.recover(self, re)
-        finally:
-            self.exitRule()
-        return localctx
-
-
-    class AndexprContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
-            super().__init__(parent, invokingState)
-            self.parser = parser
-
-        def AND(self):
-            return self.getToken(LanguageParser.AND, 0)
-
-        def getRuleIndex(self):
-            return LanguageParser.RULE_andexpr
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAndexpr" ):
-                listener.enterAndexpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAndexpr" ):
-                listener.exitAndexpr(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitAndexpr" ):
-                return visitor.visitAndexpr(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-
-
-    def andexpr(self):
-
-        localctx = LanguageParser.AndexprContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 12, self.RULE_andexpr)
-        try:
-            self.enterOuterAlt(localctx, 1)
-            self.state = 77
-            self.match(LanguageParser.AND)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
