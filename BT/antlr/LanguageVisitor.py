@@ -45,13 +45,16 @@ class LanguageVisitor(ParseTreeVisitor):
     def visitSetCommand(self, ctx:LanguageParser.SetCommandContext):
         return self.visitChildren(ctx)
 
+    # Visit a parse tree produced by LanguageParser#getCfgCommand.
+    def visitGetCfgCommand(self, ctx:LanguageParser.GetCfgCommandContext):
+        # client asks to see its configuration
+        return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LanguageParser#getTimeExpr.
     def visitGetTimeExpr(self, ctx:LanguageParser.GetTimeExprContext):
         self.append(' time ')
         self.visitChildren(ctx)
         self.append(' ' + str(ctx.DATE()) + ' ')
-
 
     # Visit a parse tree produced by LanguageParser#getTimeIntervalExpr.
     def visitGetTimeIntervalExpr(self, ctx:LanguageParser.GetTimeIntervalExprContext):
@@ -68,11 +71,10 @@ class LanguageVisitor(ParseTreeVisitor):
         self.append(' '+ str(ctx.NUM()) + ' ')
 
 
-    # Visit a parse tree produced by LanguageParser#getAlertExpr.
-    def visitGetAlertExpr(self, ctx:LanguageParser.GetAlertExprContext):
+    # Visit a parse tree produced by LanguageParser#setAlertExpr.
+    def visitSetAlertExpr(self, ctx:LanguageParser.SetAlertExprContext):
         # enable alerts
         return self.visitChildren(ctx)
-
 
     # Visit a parse tree produced by LanguageParser#getStatusExpr.
     def visitGetStatusExpr(self, ctx:LanguageParser.GetStatusExprContext):

@@ -35,6 +35,15 @@ class LanguageListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LanguageParser#getCfgCommand.
+    def enterGetCfgCommand(self, ctx:LanguageParser.GetCfgCommandContext):
+        pass
+
+    # Exit a parse tree produced by LanguageParser#getCfgCommand.
+    def exitGetCfgCommand(self, ctx:LanguageParser.GetCfgCommandContext):
+        pass
+
+
     # Enter a parse tree produced by LanguageParser#getTimeExpr.
     def enterGetTimeExpr(self, ctx:LanguageParser.GetTimeExprContext):
         pass
@@ -62,15 +71,6 @@ class LanguageListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by LanguageParser#getAlertExpr.
-    def enterGetAlertExpr(self, ctx:LanguageParser.GetAlertExprContext):
-        pass
-
-    # Exit a parse tree produced by LanguageParser#getAlertExpr.
-    def exitGetAlertExpr(self, ctx:LanguageParser.GetAlertExprContext):
-        pass
-
-
     # Enter a parse tree produced by LanguageParser#getStatusExpr.
     def enterGetStatusExpr(self, ctx:LanguageParser.GetStatusExprContext):
         pass
@@ -86,6 +86,15 @@ class LanguageListener(ParseTreeListener):
 
     # Exit a parse tree produced by LanguageParser#setGuidelineExpr.
     def exitSetGuidelineExpr(self, ctx:LanguageParser.SetGuidelineExprContext):
+        pass
+
+
+    # Enter a parse tree produced by LanguageParser#setAlertExpr.
+    def enterSetAlertExpr(self, ctx:LanguageParser.SetAlertExprContext):
+        pass
+
+    # Exit a parse tree produced by LanguageParser#setAlertExpr.
+    def exitSetAlertExpr(self, ctx:LanguageParser.SetAlertExprContext):
         pass
 
 
