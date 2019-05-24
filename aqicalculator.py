@@ -8,29 +8,37 @@ def aqicalc2(conc, conc_low, conc_high, index_low, index_high):
     return (((index_low-index_high)/(conc_high-conc_low))*(conc-conc_high))+index_low
 
 def co2aqi(input):
-    co2bp = (0, 600, 1500, 40000, 100000, 150000)
+    co2bp = (0, 1000, 5000, 40000, 141000, 200000)
     i = 0
+    if(input>200000):
+        return aqicalc1(input, co2bp[4], co2bp[5], aqibp[4], aqibp[5])
     while(i<5):
         if(input >= co2bp[i] and input <= co2bp[i+1]):
             return aqicalc1(input, co2bp[i], co2bp[i+1], aqibp[i], aqibp[i+1])
         i += 1
 
 def coaqi(input):
-    cobp = (0, 9, 25, 75, 150, 200)
+    cobp = (0, 11.65, 25, 75, 150, 200)
     i = 0
+    if(input>200):
+        return aqicalc1(input, cobp[4], cobp[5], aqibp[4], aqibp[5])
     while(i<5):
         if(input >= cobp[i] and input <= cobp[i+1]):
             return aqicalc1(input, cobp[i], cobp[i+1], aqibp[i], aqibp[i+1])
         i += 1
 
 def tempaqi(input):
-    templowbp = (-35, -25, -11, 7, 18, 20)
-    temphighbp = (20, 23, 29, 33, 37, 45)
+    templowbp = (20, 18, 7, -14, -31, -40)
+    temphighbp = (20, 23, 29, 33, 37, 42)
     i = 0
-    if(input<=20):
+    if(input<-40):
+        return (aqicalc2(input, templowbp[5], templowbp[4], aqibp[4], aqibp[5]), "low")
+    elif(input>42):
+        return (aqicalc1(input, temphighbp[4], temphighbp[5], aqibp[4], aqibp[5]), "high")
+    elif(input<=20):
         while(i<5):
             if(input >= templowbp[i] and input <= templowbp[i+1]):
-                return (aqicalc2(input, templowbp[i], templowbp[i+1], aqibp[i], aqibp[i+1]), "low")
+                return (aqicalc2(input, templowbp[i+1], templowbp[i], aqibp[i], aqibp[i+1]), "low")
             i += 1
     elif(input>20):
         while(i<5):
@@ -39,13 +47,13 @@ def tempaqi(input):
             i += 1
 
 def humiaqi(input):
-    humilowbp = (0, 30, 40, 50)
+    humilowbp = (50, 40, 30 ,0)
     humihighbp = (50, 60, 70, 100)
     i = 0
     if(input<=50):
         while(i<3):
             if(input >= humilowbp[i] and input <= humilowbp[i+1]):
-                return (aqicalc2(input, humilowbp[i], humilowbp[i+1], aqibp[i], aqibp[i+1]), "low")
+                return (aqicalc2(input, humilowbp[i+1], humilowbp[i], aqibp[i], aqibp[i+1]), "low")
             i += 1
     elif(input>50):
         while(i<3):
