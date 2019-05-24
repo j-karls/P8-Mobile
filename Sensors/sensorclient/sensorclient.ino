@@ -132,7 +132,7 @@ public:
   SensorMQ7(int pinData, int pinDigital, int pinDigitalSwitch) : SensorMQ(pinData, pinDigital, pinDigitalSwitch) { 
     sensorName = String("MQ7");
     cycleTime = _heatPeriod + _coolPeriod;
-    _analogMeasurementFresh = 45.31378;
+    _analogMeasurementFresh = 14.39487; // avg analog measurement in fresh air during the cooling period
     _rRatioFresh = 1;
     _funcConstantA = 0.8494;
     _funcConstantB = -0.5455;
@@ -189,7 +189,7 @@ public:
   SensorMQ135(int pinData, int pinDigital) : SensorMQ(pinData, pinDigital, -1) { 
     sensorName = String("MQ135");
     cycleTime = 10000; // we aggregate raw measurements every 10 seconds
-    _analogMeasurementFresh = 32.03519;
+    _analogMeasurementFresh = 61.13595;
     _rRatioFresh = 3.7;
     _funcConstantA = 5.1633;
     _funcConstantB = -0.3495;
@@ -215,7 +215,6 @@ public:
       startNewCycle(currentTime);
     }
     else {
-      // Serial.println(String(_r0, 4));
       performAggregation(convertPPM(getRawValue()));
     }
   }
@@ -362,11 +361,7 @@ void loop()
   }
 
   // Manage state
-  // sensorMQ7.manageStateOnlyHeating(currentTime);
   sensorMQ7.manageState(currentTime);
   sensorMQ135.manageState(currentTime);
   sensorAM2302.manageState(currentTime);
-
-//  Serial.println("MQ7:" + String(sensorMQ7.getRawValue()));
-//  Serial.println("MQ135:" + String(sensorMQ135.getRawValue()));
 }
