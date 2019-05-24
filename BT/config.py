@@ -28,11 +28,29 @@ class Configuration():
 			self.__mac = mac[0]
 			self.save()
 
+	def getAlertSetting(self):
+		return self.__alert
+
+	def setAlertSetting(self, setting):
+		if setting == 0 or setting == 1:
+			self.__alert = setting
+			self.update()
+			print('Alert for: ' + self.__mac + ' has been set to ' + str(setting))
+
+	def setGuidelineSetting(self, guideline):
+		self.__guideline = guideline
+		self.update()
+		print('Guideline for: ' + self.__mac + ' has been set to ' + str(guideline))
+
+	def getMAC(self):
+		return self.__mac
+
+
 	# Load config from db
 	def load(self):
 		db = self.createConnection()
 		cursor = db.cursor()
-		cursor.execute("SELECT mac FROM config WHERE mac=?", (self.__mac,))
+		cursor.execute("SELECT * FROM config WHERE mac=?", (self.__mac,))
 		data = cursor.fetchone()
 		try:
 			self.__mac = data[0]
@@ -49,6 +67,13 @@ class Configuration():
 		cursor.execute('''INSERT INTO config(mac, alert, guideline) 
 				VALUES (?,?,?)''', row)
 		db.commit()
+
+	def update(self):
+                db = self.createConnection()
+                cursor = db.cursor()
+                row = (self.__alert, self.__guideline)
+                cursor.execute('''UPDATE config SET alert=?, guideline=? WHERE mac = "{}"'''.format(self.__mac), row)
+                db.commit()
 
 	def configExists(self, mac):
 		db = self.createConnection()

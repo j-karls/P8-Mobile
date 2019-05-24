@@ -10,8 +10,8 @@ import sqlite3
 from sqlite3 import Error
 
 #agelimit in hours
-agelim_short = 24 #hours, -> 1 day
-agelim_long = 24*14 #hours, -> 14 days
+agelim_short = 24*7 #hours, -> 7 day
+agelim_long = 24*30 #hours, -> 30 days
 
 DBFILE = '/home/pi/Desktop/data.sqlite'
 
@@ -20,7 +20,7 @@ def main():
 		print('- Checking database for old data - ' + str(datetime.now()))
 		maintainShortterm()
 		maintainLongterm()
-		t.sleep(60*10) # sleep for 10 minutes
+		t.sleep(60*60) # sleep for 60 minutes
 
 def maintainLongterm():
 	db = createConnection()
