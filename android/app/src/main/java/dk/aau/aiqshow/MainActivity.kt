@@ -2,7 +2,9 @@ package dk.aau.aiqshow
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -17,10 +19,9 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
 import kotlinx.android.synthetic.main.recycler.view.*
 import org.json.JSONArray
+import org.json.JSONObject
 import dk.aau.iaqlibrary.BluetoothService.Companion as comp
 import java.nio.charset.Charset
 import java.time.LocalDateTime
@@ -30,17 +31,30 @@ import kotlin.random.nextInt
 
 
 private const val TAG = "MAIN_ACTIVITY_DEBUG"
+const val PREFERENCES = "prefs"
+
+fun Boolean.toInt() = if (this) 1 else 0
+
+fun Int.toBool() = this > 0
+
 data class DataReading(val gasType: String, val value: Float, val time: LocalDateTime) {
     override fun toString(): String {
         return "Gas: $gasType, Value: ${value.roundToInt()}, Time: $time"
     }
 }
 
+data class Configuration(val mac: String, val subbed: Boolean, val guideline: String) {
+    override fun toString(): String {
+        return "CFG/[[\"$mac\",\"${subbed.toInt()}\",\"$guideline\"]]"
+    }
+}
+
 class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
+    private var prefs : SharedPreferences? = null
     private val mmBTAdapter : BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val mmWeakRef = WeakReference(this)
-    private val mmHandler = MyHandler(mmWeakRef)
+    private lateinit var mmHandler : MyHandler
     private val mmDeviceAddress : String = "B8:27:EB:4C:0D:D9"
     private val mmManager: FragmentManager = supportFragmentManager
     private lateinit var mmDevice : BluetoothDevice
@@ -48,15 +62,16 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
     private lateinit var recyclerView: RecyclerView
 
 
+
     private class MyHandler(private val ref: WeakReference<MainActivity>) : Handler() {
         private var data: String = ""
         private var size: Int = 0
+        val prefs: SharedPreferences? = ref.get()!!.getSharedPreferences(PREFERENCES,0)
         override fun handleMessage(msg: Message) {
-            val thing1 = msg.obj as ByteArray
-            val thing = thing1.toString(Charset.defaultCharset()).take(msg.arg1)
+            val thing = (msg.obj as ByteArray).toString(Charset.defaultCharset()).take(msg.arg1)
 
             when {
-                msg.what == comp.MESSAGE_READ -> {Log.i("$TAG READ",thing); read(thing)}
+                msg.what == comp.MESSAGE_READ -> {Log.i("$TAG READ",thing); messageRead(msg)}
                 msg.what == comp.MESSAGE_WRITE -> Log.i("$TAG WRITE",thing)
                 msg.what == comp.MESSAGE_CONNECT -> {Log.i("$TAG CONNECTION",thing); connect(msg.arg2)
                     ref.get()!!.mainText.text = thing}
@@ -69,25 +84,45 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             }
         }
 
-        private fun read(thing: String) {
+        private fun messageRead(msg : Message) {
+
+            val thing = (msg.obj as ByteArray).toString(Charset.defaultCharset()).take(msg.arg1)
+
+            when (msg.arg2) {
+                comp.CONTENT_ACKNOWLEDGE -> ref.get()!!.mmBTService.get(comp.getConfig())
+                comp.CONTENT_ALERT -> Log.i(TAG,"LULULULULUL")
+                comp.CONTENT_CONFIG -> config(configJSON(JSONArray(thing)))
+                comp.CONTENT_DATA -> data(thing)
+                else -> throw Exception()
+            }
+        }
+
+        private fun config(thing: Configuration) {
+            if (thing.subbed) {
+                prefs!!.edit().putBoolean("alert",true).apply()
+            }
+            else {
+                prefs!!.edit().putBoolean("alert",false).apply()
+            }
+        }
+
+        private fun data(thing: String) {
             val len = thing.length
             data += thing
             if (len > size)
                 size = len
             if (thing[len-1] == ']' && thing[len-2] == ']') {
                 ref.get()!!.mainText.text = "Data Received"
-                //Log.i(TAG,data)
                 Log.i("$TAG SIZE",size.toString() + " " + data.length.toString())
-                val json = jsonStuff(JSONArray(data))
+                val list = dataJSON(JSONArray(data))
 
-                ref.get()!!.recyclerView.adapter = DataAdapter(json.toTypedArray())
+                ref.get()!!.recyclerView.adapter = DataAdapter(list.toTypedArray())
                 ref.get()!!.recyclerView.adapter?.notifyDataSetChanged()
-
                 data = ""
             }
         }
 
-        fun jsonStuff(array: JSONArray) : List<DataReading> {
+        fun dataJSON(array: JSONArray) : List<DataReading> {
             val list: MutableList<DataReading> = mutableListOf()
             var i = 0
             while (!array.isNull(i)) {
@@ -98,6 +133,19 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
                 i++
             }
             return list.toList()
+        }
+
+        fun configJSON(array:JSONArray) : Configuration {
+
+            val mac = array.getJSONArray(0).getString(0)
+            val sub = array.getJSONArray(0).getInt(1).toBool()
+            val guideline = array.getJSONArray(0).getString(2)
+
+            return Configuration(mac,sub,guideline)
+        }
+
+        fun alertJSON(json : JSONObject) : String {
+            throw NotImplementedError()
         }
 
 
@@ -118,6 +166,10 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        prefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+
+        mmHandler = MyHandler(mmWeakRef)
+
         if (!mmBTAdapter.isEnabled){
             val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(intent,1)
@@ -134,18 +186,13 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             }
         }
 
-
+        if (!prefs!!.getBoolean("alert",false)) {
+            prefs!!.edit().putBoolean("alert",false).apply()
+        }
 
         recyclerView = findViewById<RecyclerView>(R.id.Recycler).apply {
-            // use this setting to improve performance if you know that changes
-            // in content do not change the layout size of the RecyclerView
-            //setHasFixedSize(true)
-
-            // use a linear layout manager
             layoutManager = LinearLayoutManager(this@MainActivity)
-            // specify an viewAdapter (see also next example)
             adapter = DataAdapter(arrayOf())
-
         }
 
 
@@ -156,8 +203,8 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
         buttonDisconnect.setOnClickListener {
             mmBTService.disconnect()
-
         }
+
         val rndm = Random(45354345)
         stuffButton.setOnClickListener {
             mmBTService.get(comp.getValue("CO2",">", rndm.nextInt((0..7000)).toFloat()))
@@ -174,9 +221,13 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         mmBTService.disconnect()
     }
 
-    override fun onSend(text: String) {
+    override fun onGET(text: String) {
         mainText.text = text
         mmBTService.get(text)
+    }
+    override fun onSET(text: String) {
+        mainText.text = text
+        mmBTService.set(text)
     }
 
 }

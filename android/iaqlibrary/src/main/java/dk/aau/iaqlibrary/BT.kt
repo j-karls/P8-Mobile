@@ -9,6 +9,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
+import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -58,13 +59,28 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                     // Read from the InputStream
                     bytes = mmInStream.available()
                     if (bytes != 0) {
+                        Log.i(TAG,"Message available, payload: $bytes")
                         buffer = ByteArray(20000)
                         SystemClock.sleep(100) //pause and wait for rest of data. Adjust this depending on your sending speed.
                         bytes = mmInStream.available() // how many bytes are ready to be read?
                         bytes = mmInStream.read(buffer, 0, bytes) // record how many bytes we actually read
 
+                        val stuff = buffer.sliceArray(0..2).toString(Charset.defaultCharset())
+
                         if (bytes > 2)
-                            handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget()
+                            when (stuff) {
+                                "DAT" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_DATA,
+                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
+                                "ACK" -> handler.obtainMessage(MESSAGE_READ, bytes-3, CONTENT_ACKNOWLEDGE,
+                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
+                                "CFG" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_CONFIG,
+                                buffer.sliceArray(4 until buffer.size)).sendToTarget()
+                                "ALT" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_ALERT,
+                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
+                                else -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_DATA,
+                                    buffer).sendToTarget()
+                            }
+
                         else
                             handler.obtainMessage(MESSAGE_EMPTY, bytes, -1, buffer).sendToTarget()
                     }
@@ -73,7 +89,6 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                     handler.obtainMessage(MESSAGE_ERROR, 10, ERROR_READ, "Read Error".toByteArray()).sendToTarget()
                     break
                 }
-
             }
         }
 
@@ -184,9 +199,10 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         const val ERROR_CONNECT: Int = 0
         const val ERROR_READ: Int = 1
 
-        const val CONTENT_TEXT: Int = 0
+        const val CONTENT_ACKNOWLEDGE: Int = 0
         const val CONTENT_DATA: Int = 1
-        const val CONTENT_STUFF: Int = 2
+        const val CONTENT_CONFIG: Int = 2
+        const val CONTENT_ALERT: Int = 3
 
         fun getTimeInterval(gasType: String, from: LocalDateTime, to: LocalDateTime) : String {
             val fromDate = from.format(formatter)
@@ -204,15 +220,19 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         }
 
         fun subAlerts(): String {
-            return ("alerts = on")
+            return ("alerts = true")
         }
 
         fun unSubAlerts(): String {
-            return ("alerts = off")
+            return ("alerts = false")
         }
 
         fun getStatus(gasType: String): String {
             return ("$gasType status")
+        }
+
+        fun getConfig(): String {
+            return ("config")
         }
 
         fun setGuidelines(guideline: String = "WHO") : String {

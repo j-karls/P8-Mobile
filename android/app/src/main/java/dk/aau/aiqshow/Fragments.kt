@@ -3,6 +3,7 @@ package dk.aau.aiqshow
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.Fragment
@@ -10,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import java.lang.Exception
 import dk.aau.iaqlibrary.BluetoothService.Companion as get
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,12 +23,12 @@ open class SuperFragment : Fragment() {
     protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
     protected val compArray = arrayOf("Equal to","More than","Less than")
     protected val compValueArray = arrayOf("=",">","<")
-    protected val alertArray = arrayOf("predicted", "immediate")
     protected lateinit var callback: DialogListener
-    protected lateinit var activityCallback: InputListener
+    private lateinit var activityCallback: InputListener
 
     interface InputListener {
-        fun onSend(text: String)
+        fun onGET(text: String)
+        fun onSET(text: String)
     }
 
     interface DialogListener {
@@ -40,19 +42,24 @@ open class SuperFragment : Fragment() {
             activityCallback = context as InputListener
         } catch (e: ClassCastException) {
             throw ClassCastException(context?.toString()
-                    + " must implement DialogListener")
+                    + " must implement InputListener")
         }
 
         try {
             callback = parentFragment as DialogListener
         } catch (e: ClassCastException) {
             throw ClassCastException(parentFragment?.toString()
-                    + " must implement InputListener")
+                    + " must implement DialogListener")
         }
     }
 
-    fun sendMessage(message : String) {
-        activityCallback.onSend(message)
+    fun sendGET(message : String) {
+        activityCallback.onGET(message)
+        callback.onEnd()
+    }
+
+    fun sendSET(message : String) {
+        activityCallback.onSET(message)
         callback.onEnd()
     }
 
@@ -100,8 +107,7 @@ class TimeIntervalFragment : SuperFragment() {
     private fun send() {
         val message: String = get.getTimeInterval(mmGas.selectedItem.toString(), mmDateListenerFrom.getTime(),
             mmDateListenerTo.getTime())
-
-        sendMessage(message)
+        sendGET(message)
     }
 }
 
@@ -145,7 +151,7 @@ class TimeFragment : SuperFragment() {
 
         val message: String = get.getTime(gas,comp,time)
 
-        sendMessage(message)
+        sendGET(message)
     }
 }
 
@@ -184,30 +190,53 @@ class ValueFragment : SuperFragment() {
 
         val message: String = get.getValue(gas,comp,value)
 
-        sendMessage(message)
+        sendGET(message)
     }
 
 }
 
 class AlertFragment : SuperFragment() {
-    private lateinit var mmGas : Spinner
-    private lateinit var mmAlert : Spinner
+    private lateinit var prefs : SharedPreferences
+    private var alert : Boolean? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.alert_fragment, container, false)
+        prefs = this.activity?.getSharedPreferences(PREFERENCES,0)!!
+        alert = prefs.getBoolean("alert",false)
+        val posBut = view.findViewById<Button>(R.id.AlertFragmentPosBut)
+        try {
+            posBut.text =
+                if (alert!!)
+                    "Unsubscribe"
+                else
+                    "Subscribe"
+        } catch (e: Exception) {
+            throw NullPointerException("$e: Preferences do not exists")
+        }
 
-
-        view.findViewById<Button>(R.id.AlertFragmentPosBut).setOnClickListener { send() }
+        posBut.setOnClickListener { send() }
         view.findViewById<Button>(R.id.AlertFragmentNegBut).setOnClickListener { callback.onEnd() }
 
         return view
     }
 
     private fun send() {
-        val message: String = get.subAlerts()
+        val message : String?
+        try {
+            message =
+                if (alert!!)
+                    get.unSubAlerts()
+                else
+                    get.subAlerts()
 
-        sendMessage(message)
+
+        } catch (e: Exception) {
+            throw NullPointerException("$e: Preferences do not exists")
+        }
+
+
+        sendSET(message)
     }
 
 }
@@ -233,7 +262,7 @@ class StatusFragment : SuperFragment() {
     private fun send() {
         val message: String = get.getStatus(mmGas.selectedItem.toString())
 
-        sendMessage(message)
+        sendGET(message)
     }
 
 }
