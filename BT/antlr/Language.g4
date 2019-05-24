@@ -6,19 +6,20 @@ s
 
 cmd
 	: 'GET' STRING getexpr (andexpr getexpr)* 			#getCommand
-	| 'SET' setexpr (andexpr setexpr)*               		#setCommand
+	| 'SET' setexpr (andexpr setexpr)*               	#setCommand
+	| 'GET' 'config'									#getCfgCommand
     ;
 
 getexpr
 	: 'time' op=compare DATE	        #getTimeExpr
 	| 'time' DATE 'to' DATE         	#getTimeIntervalExpr
 	| 'value' op=compare NUM	        #getValueExpr
-    | 'alerts' op=assign ALERTTYPE     #getAlertExpr
     | 'status'                      	#getStatusExpr
 	;
 
 setexpr
     : 'guideline' op=assign STRING      #setGuidelineExpr
+    | 'alerts' op=assign ALERTTYPE      #setAlertExpr
     ;
 
 compare
@@ -33,9 +34,9 @@ assign: EQ;
 
 andexpr: AND;
 
-ALERTYPE
-    : 'immediate'
-    | 'predicted'
+ALERTTYPE
+    : 'true'
+    | 'false'
     ;
 
 NUM
