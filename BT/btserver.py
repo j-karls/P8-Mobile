@@ -24,13 +24,6 @@ def APIService(client, addr, cfg):
 				alertThread = Thread(target=alert, args=(client, cfg))
 				alertThread.start()
 				print('Client ' + addr[0] + ' is subscribed to receive alerts.')
-		elif cfg.getAlertSetting() == 0:
-			try:
-				if alertThread.is_alive():
-					alertThread.stop()
-					print('Client ' + addr[0] + 'is no longer subscribed to receive alerts.')
-			except NameError:
-				pass
 
 		data = client.recv(1024)
 		if not data:
@@ -40,22 +33,27 @@ def APIService(client, addr, cfg):
 
 		# Compile string to a SQL query
 		sqlcommand = None
+		responseType = None
 		try:
-			sqlcommand = Compile(str, cfg)
+			sqlcommand, responseType = Compile(str, cfg)
 		except:
 			print('Query translation failed, syntax error in input: ' + str)
 			client.send('SYNTAX_ERROR'.encode('utf-8'))
 
 		#sqlcommand = 'SELECT * FROM config WHERE mac = "{}"'.format(addr[0])
-		if sqlcommand is not None:
+		if sqlcommand is not None and responseType is not None:
 			print('SQL query: ' + sqlcommand)
 			try:
 				# Execute generated sql command, against local db
 				result = readFromDatabase(sqlcommand)
 				# Convert result (rows) to a json object
 				jsonObj = json.dumps(result)
-				print('Sending: ' + jsonObj)
-				client.send(jsonObj.encode('utf-8'))
+				if responseType[:3] == 'GET':
+					payload = responseType[4:] + '/' + jsonObj
+				elif responseType[:3] == 'SET':
+					payload = 'ACK'
+				print('Sending: ' + payload)
+				client.send(payload.encode('utf-8'))
 			except BluetoothError as e:
 				print(e)
 	client.close()
@@ -64,11 +62,24 @@ def alert(client, cfg):
 	while True:
 		# Fetch and check if values are beyond limits...
 		# if so, send alert message(s) to client
-		#factors = ('CO2', 'CO', 'Temp', 'Hum')
-		co2val = readFromDatabase(Compile('GET CO2 status', cfg))[0][1]
-		coval = readFromDatabase(Compile('GET CO status', cfg))[0][1]
-		tempval = readFromDatabase(Compile('GET Temp status',cfg))[0][1]
-		humval = readFromDatabase(Compile('GET Hum status',cfg))[0][1]
+		if cfg.getAlertSetting() == 0:
+			#print('Client ' + cfg.getMAC() + ' is no longer subscribed to receive alerts.')
+			break
+
+		# Generate SQL queries
+		# The [0] means we're assigning the SQL -- we don't need the responseType here
+		co2sql = Compile('GET CO2 status', cfg)[0]
+		cosql = Compile('GET CO status', cfg)[0]
+		tempsql = Compile('GET Temp status', cfg)[0]
+		humsql = Compile('GET Hum status', cfg)[0]
+
+		# Now we read from the database, and exctract the value
+		# We use [0] to extract the first (and only) element in the array
+		# We then use [1] to extract the value, which is the second collumn in the database
+		co2val = readFromDatabase(co2sql)[0][1]
+		coval = readFromDatabase(cosql)[0][1]
+		tempval = readFromDatabase(tempsql)[0][1]
+		humval = readFromDatabase(humsql)[0][1]
 
 		res = aqi.aqicompare(co2val, coval, tempval, humval)
 		if res['problem'] != 'ALL_FACTORS_OK':
@@ -79,9 +90,10 @@ def alert(client, cfg):
 			print('Problem:\t' + str(res['problem']))
 			print('Solution:\t'+ str(res['solution']))
 			jsonObj = json.dumps(res)
-			client.send(jsonObj.encode('utf-8'))
-			t.sleep(60)
-		# We break this loop by killing the thread from the outside
+			payload = 'ALT' + '/' + jsonObj
+			client.send(payload.encode('utf-8'))
+
+		t.sleep(60)
 
 def readFromDatabase(sql):
 	try:

@@ -18,9 +18,9 @@ def Compile(input, cfg):
 		print(e)
 
 	visitor = LanguageVisitor(cfg)
-	query = visitor.visitS(tree)
+	query, responseType = visitor.visitS(tree)
 	#print('query string: ' + query)
-	return query
+	return query, responseType
 	#print('Input:	' + str(input_stream))
 	#print('Tree:	' + Trees.toStringTree(tree, None, parser))
 	#print('Result:	' + query)
