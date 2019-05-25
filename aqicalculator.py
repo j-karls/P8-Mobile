@@ -91,7 +91,7 @@ def aqicompare(co2val, coval, tempval, humival):
     maxaqi = max(zip( aqivalues.values(), aqivalues.keys()))
     aqivalues.update({'max': maxaqi})
     if(maxaqi[0]<=50):
-        aqivalues.update({'problem': "ALL_FACTORS_OK", 'action': "NO_ACTION_NEEDED"})
+        aqivalues.update({'problem': "ALL_FACTORS_OK", 'solution': "NO_ACTION_NEEDED"})
     elif(maxaqi[0]>50 and maxaqi[0]<=300):
         aqivalues.update(aqimessageconc(maxaqi[1], temperature[1], humidity[1]))
     else:
