@@ -5,8 +5,8 @@ s
 	;
 
 cmd
-	: 'GET' STRING getexpr				#getCommand
-	| 'SET' setexpr               		#setCommand
+	: 'GET' STRING getexpr (andexpr getexpr)*	#getCommand
+	| 'SET' setexpr (andexpr setexpr)*          #setCommand
 	| 'GET' 'config'					#getCfgCommand
     ;
 
@@ -31,6 +31,8 @@ compare
 	;
 
 assign: EQ;
+
+andexpr: AND;
 
 ALERTTYPE
     : 'true'

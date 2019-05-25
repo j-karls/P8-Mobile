@@ -106,4 +106,8 @@ class LanguageVisitor(ParseTreeVisitor):
     def visitAssign(self, ctx:LanguageParser.AssignContext):
         return self.visitChildren(ctx)
 
+    # Visit a parse tree produced by LanguageParser#andexpr.
+    def visitAndexpr(self, ctx:LanguageParser.AndexprContext):
+        return self.visitChildren(ctx)
+
 del LanguageParser

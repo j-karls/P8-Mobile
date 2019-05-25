@@ -116,3 +116,12 @@ class LanguageListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LanguageParser#andexpr.
+    def enterAndexpr(self, ctx:LanguageParser.AndexprContext):
+        pass
+
+    # Exit a parse tree produced by LanguageParser#andexpr.
+    def exitAndexpr(self, ctx:LanguageParser.AndexprContext):
+        pass
+
+
