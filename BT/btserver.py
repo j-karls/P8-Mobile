@@ -59,6 +59,7 @@ def APIService(client, addr, cfg):
 	client.close()
 
 def alert(client, cfg):
+	t.sleep(2)
 	while True:
 		# Fetch and check if values are beyond limits...
 		# if so, send alert message(s) to client

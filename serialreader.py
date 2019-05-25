@@ -49,9 +49,10 @@ def findPorts():
 
 #start on new thread
 def reader(port):
+	# Sleep for 5 minutes, letting the sensors heat up
+	time.sleep(60*5)
 	#Database connection
 	dbconn = dbCreateConnection(DBFILE)
-
 	#Serial comms connection
 	try:
 		ser = serial.Serial(port)
