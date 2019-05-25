@@ -66,7 +66,6 @@ open class SuperFragment : Fragment() {
 }
 
 class TimeIntervalFragment : SuperFragment() {
-
     private lateinit var mmGas : Spinner
     private lateinit var mmTimePickerFrom : TimePickerDialog
     private lateinit var mmTimePickerTo : TimePickerDialog
@@ -75,7 +74,6 @@ class TimeIntervalFragment : SuperFragment() {
     private val mmTimeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.timeinterval_fragment, container, false)
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
@@ -119,7 +117,6 @@ class TimeFragment : SuperFragment() {
     private val mmTimeNow = LocalDateTime.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.time_fragment, container, false)
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)
@@ -161,7 +158,6 @@ class ValueFragment : SuperFragment() {
     private lateinit var mmValue : EditText
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.value_fragment, container, false)
 
         mmValue = view.findViewById(R.id.ValueFragmentValue)
@@ -200,11 +196,12 @@ class AlertFragment : SuperFragment() {
     private var alert : Boolean? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.alert_fragment, container, false)
+        val posBut = view.findViewById<Button>(R.id.AlertFragmentPosBut)
+
         prefs = this.activity?.getSharedPreferences(PREFERENCES,0)!!
         alert = prefs.getBoolean("alert",false)
-        val posBut = view.findViewById<Button>(R.id.AlertFragmentPosBut)
+
         try {
             posBut.text =
                 if (alert!!)
@@ -245,7 +242,6 @@ class StatusFragment : SuperFragment() {
     private lateinit var mmGas : Spinner
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.status_fragment, container, false)
 
         val gasArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,gasArray)

@@ -23,6 +23,11 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
     lateinit var mmSocket : BluetoothSocket
     private val mmCommThread = CommunicationThread()
     private val mmConnThread = ConnectThread()
+    var connected : Boolean = false
+        private set
+
+
+
 
     private fun createBluetoothSocket(device: BluetoothDevice) : BluetoothSocket {
         try {
@@ -69,23 +74,18 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
 
                         if (bytes > 2)
                             when (stuff) {
-                                "DAT" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_DATA,
-                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
-                                "ACK" -> handler.obtainMessage(MESSAGE_READ, bytes-3, CONTENT_ACKNOWLEDGE,
-                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
-                                "CFG" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_CONFIG,
-                                buffer.sliceArray(4 until buffer.size)).sendToTarget()
-                                "ALT" -> handler.obtainMessage(MESSAGE_READ, bytes-4, CONTENT_ALERT,
-                                    buffer.sliceArray(4 until buffer.size)).sendToTarget()
-                                else -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_DATA,
-                                    buffer).sendToTarget()
+                                "DAT" -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_DATA, buffer).sendToTarget()
+                                "ACK" -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_ACKNOWLEDGE, buffer).sendToTarget()
+                                "CFG" -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_CONFIG, buffer).sendToTarget()
+                                "ALT" -> handler.obtainMessage(MESSAGE_READ, bytes, CONTENT_ALERT, buffer).sendToTarget()
+                                else -> handler.obtainMessage(MESSAGE_CONT, bytes, CONTENT_DATA, buffer).sendToTarget()
                             }
-
                         else
                             handler.obtainMessage(MESSAGE_EMPTY, bytes, -1, buffer).sendToTarget()
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
+                    connected = false
                     handler.obtainMessage(MESSAGE_ERROR, 10, ERROR_READ, "Read Error".toByteArray()).sendToTarget()
                     break
                 }
@@ -99,6 +99,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                 mmOutStream.write(bytes)
                 handler.obtainMessage(MESSAGE_WRITE, bytes.size, -1, bytes).sendToTarget()
             } catch (e: IOException) {
+                connected = false
             }
 
         }
@@ -110,6 +111,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
                 sleep(100)
                 mmSocket.close()
                 handler.obtainMessage(MESSAGE_CONNECT, 12, 0, "Disconnected".toByteArray()).sendToTarget()
+                connected = false
             } catch (e: IOException) {
             }
 
@@ -144,6 +146,8 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
 
             if (!fail) {
                 mmCommThread.start()
+
+                connected = true
 
                 handler.obtainMessage(MESSAGE_CONNECT, 9, 1, "Connected".toByteArray())
                     .sendToTarget()
@@ -195,6 +199,7 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         const val MESSAGE_CONNECT: Int = 2
         const val MESSAGE_EMPTY: Int = 3
         const val MESSAGE_ERROR: Int = 4
+        const val MESSAGE_CONT: Int = 5
 
         const val ERROR_CONNECT: Int = 0
         const val ERROR_READ: Int = 1
