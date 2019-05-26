@@ -22,6 +22,7 @@ open class SuperFragment : Fragment() {
 
     protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
     protected val compArray = arrayOf("Equal to","More than","Less than")
+    protected val dateArray = arrayOf("Since","Before")
     protected val compValueArray = arrayOf("=",">","<")
     protected lateinit var callback: DialogListener
     private lateinit var activityCallback: InputListener
@@ -124,7 +125,7 @@ class TimeFragment : SuperFragment() {
         mmGas = view.findViewById(R.id.TimeFragmentGas)
         mmGas.adapter = gasArrayAdapter
 
-        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,compArray)
+        val comparatorArrayAdapter = ArrayAdapter<String>(context!!,android.R.layout.simple_spinner_item,dateArray)
         comparatorArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         mmComp = view.findViewById(R.id.TimeFragmentComparator)
         mmComp.adapter = comparatorArrayAdapter
@@ -143,7 +144,7 @@ class TimeFragment : SuperFragment() {
 
     private fun send() {
         val gas = mmGas.selectedItem.toString()
-        val comp = compValueArray[mmComp.selectedItemPosition]
+        val comp = compValueArray[mmComp.selectedItemPosition + 1] // +1 because the dateArray doesn't contain "="
         val time = mmDateListener.getTime()
 
         val message: String = get.getTime(gas,comp,time)
@@ -273,7 +274,7 @@ class DateTimePicker : DialogFragment(), DatePickerDialog.OnDateSetListener, Tim
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
         mmYear = year
-        mmMonth = month
+        mmMonth = month + 1
         mmDay = dayOfMonth
         mmTimePicker.show()
     }

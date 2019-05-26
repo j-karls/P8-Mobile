@@ -38,6 +38,8 @@ private const val TAG = "MAIN_ACTIVITY_DEBUG"
 const val PREFERENCES = "prefs"
 private const val CHANNEL_ID = "dk.aau.aiqshow.alert"
 
+// a number of extension properties used in the program
+
 fun Boolean.toInt() = if (this) 1 else 0
 
 fun Int.toBool() = this > 0
@@ -47,19 +49,19 @@ fun Double.round(decimals: Int): Double {
     repeat(decimals) { multiplier *= 10 }
     return round(this * multiplier) / multiplier
 }
-
+// a data class used to contain data readings from the sensor-box
 data class DataReading(val gasType: String, val value: Double, val time: LocalDateTime) {
     override fun toString(): String {
         return "Gas: $gasType, Value: ${value.roundToInt()}, Time: $time"
     }
 }
-
+// a data class for containing a configuration
 data class Configuration(val mac: String, val subbed: Boolean, val guideline: String) {
     override fun toString(): String {
         return "CFG/[[\"$mac\",\"${subbed.toInt()}\",\"$guideline\"]]"
     }
 }
-
+// a data class for containing an alert received from the sensor-box
 data class Alert(val temperature: Double, val humidity: Double,
                  val co2: Double, val co: Double, val max : Pair<Double,String>,
                  val problem : String,val solution : List<String>) {
@@ -76,7 +78,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
     private lateinit var mmHandler : MyHandler
     private val mmDeviceAddress : String = "B8:27:EB:4C:0D:D9"
     private val mmManager: FragmentManager = supportFragmentManager
-    private lateinit var mmDevice : BluetoothDevice
+    private var mmDevice : BluetoothDevice = mmBTAdapter.getRemoteDevice(mmDeviceAddress)
     private lateinit var mmBTService : BluetoothService
     private lateinit var mmRecyclerView: RecyclerView
     private lateinit var mmNotificationManager: NotificationManager
@@ -85,6 +87,8 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         private var data: String = ""
         private var size: Int = 0
         private val prefs: SharedPreferences? = ref.get()!!.getSharedPreferences(PREFERENCES,0)
+
+        // here the handler handles messages received from the module
         override fun handleMessage(msg: Message) {
             val thing = (msg.obj as ByteArray).toString(Charset.defaultCharset()).take(msg.arg1)
 
@@ -111,18 +115,24 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             }
         }
 
+        // this handles messages received from the sensor-box
         private fun messageRead(msg : Message) {
             val thing = (msg.obj as ByteArray).toString(Charset.defaultCharset()).take(msg.arg1).drop(4)
 
             when (msg.arg2) {
                 comp.CONTENT_ACKNOWLEDGE -> ref.get()!!.mmBTService.get(comp.getConfig())
+
                 comp.CONTENT_ALERT -> alert(alertJSON(JSONObject(thing)))
+
                 comp.CONTENT_CONFIG -> config(configJSON(JSONArray(thing)))
+
                 comp.CONTENT_DATA -> data(thing)
+
                 else -> throw Exception()
             }
         }
 
+        // this handles messages marked as alerts
         private fun alert(thing: Alert) {
             val str = "A problem: ${thing.problem} has been detected, it " +
                     "is recommended to either ${thing.solution[0]} or ${thing.solution[1]}"
@@ -130,11 +140,13 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             Log.i(TAG,str)
         }
 
+        // this handles messages marked as configurations
         private fun config(thing: Configuration) {
             if (thing.subbed) { prefs!!.edit().putBoolean("alert",true).apply() }
             else { prefs!!.edit().putBoolean("alert",false).apply() }
         }
 
+        // this handles messages marked as data
         private fun data(thing: String) {
             val len = thing.length
             data += thing
@@ -153,6 +165,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             }
         }
 
+        // this enables/disables the buttons in the activity when connected to the Bluetooth device
         private fun connect(type: Int) {
             if (type == 1) { // connected
                 ref.get()!!.buttonDisconnect.isEnabled = true
@@ -212,36 +225,37 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //initialize the SharedPreferences
         mmPrefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
 
+        //initialize handler
         mmHandler = MyHandler(mmWeakRef)
 
+        //initialize the NotificationManager
         mmNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        if (!mmBTAdapter.isEnabled){
-            val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(intent,1)
-        }
-
-        mmDevice = mmBTAdapter.getRemoteDevice(mmDeviceAddress)
-        val pairedDevices: Set<BluetoothDevice>? = mmBTAdapter.bondedDevices
-        val device = pairedDevices?.find { it.name == "Beacon 1" } ?: mmDevice
-
-        if (pairedDevices != null) {
-            for((i, x) in pairedDevices.withIndex()) {
-                Log.i(TAG, "${x.name} $i")
-            }
-        }
-
+        // initializes the Notification Channel
         createNotificationChannel(
             CHANNEL_ID,
             "IAQSHOW ALERT",
             "lul")
 
+        // if Bluetooth is disables, ask to enable before starting application
+        if (!mmBTAdapter.isEnabled){
+            val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(intent,1)
+        }
+
+        val pairedDevices: Set<BluetoothDevice>? = mmBTAdapter.bondedDevices
+        // device is used if found in paired devices, otherwise uses backup
+        val device = pairedDevices?.find { it.name == "Beacon 1" } ?: mmDevice
+
+        // initializes the alert preference
         if (!mmPrefs!!.getBoolean("alert",false)) {
             mmPrefs!!.edit().putBoolean("alert",false).apply()
         }
 
+        // initialize the RecyclerView
         mmRecyclerView = findViewById<RecyclerView>(R.id.Recycler).apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = DataAdapter(arrayOf())
@@ -286,6 +300,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         mmNotificationManager.createNotificationChannel(channel)
     }
 
+    // sends a notification to the android notification area, all notifications uses the same id s.t. they don't pile up
     private fun sendNotification(content: String, text: String) {
         val notificationID = 101
         val notification = Notification.Builder(this@MainActivity,
@@ -306,6 +321,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
         mmBTService.disconnect()
     }
 
+    // interfaces for sending the message chosen in the fragments
     override fun onGET(text: String) {
         mainText.text = text
         mmBTService.get(text)
@@ -318,6 +334,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
 
 }
 
+    // adapter for the RecyclerView
 class DataAdapter(private val dataSet: Array<DataReading>) : RecyclerView.Adapter<DataAdapter.MyViewHolder>() {
 
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view)
