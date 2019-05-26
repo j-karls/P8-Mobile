@@ -47,7 +47,7 @@ NUM
 INT	: [0-9];
 STRING: [a-zA-Z_0-9]+
 	| '*';
-DATE: INT+ DASH INT+ DASH INT INT INT INT (DASH INT PT INT)?;
+DATE: INT+ DASH INT+ DASH INT INT INT INT (DASH INT+ PT INT+)?;
 EQ  : '=' ;
 LT	: '<' ;
 GT 	: '>' ;
