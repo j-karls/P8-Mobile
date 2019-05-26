@@ -11,8 +11,8 @@ cmd
     ;
 
 getexpr
-	: 'time' op=compare time	        #getTimeExpr
-	| 'time' time 'to' time         	#getTimeIntervalExpr
+	: 'time' op=compare DATE	        #getTimeExpr
+	| 'time' DATE 'to' DATE         	#getTimeIntervalExpr
 	| 'value' op=compare NUM	        #getValueExpr
     | 'status'                      	#getStatusExpr
 	;
@@ -34,10 +34,6 @@ assign: EQ;
 
 andexpr: AND;
 
-time: DAY DASH MONTH DASH YEAR						#dateexpr
-	| DAY DASH MONTH DASH YEAR COL HOUR PT MINUTE	#datetimeexpr
-	;
-
 ALERTTYPE
     : 'true'
     | 'false'
@@ -51,11 +47,7 @@ NUM
 INT	: [0-9];
 STRING: [a-zA-Z_0-9]+
 	| '*';
-DAY: INT+;
-MONTH: INT+;
-YEAR: INT INT INT INT;
-HOUR: INT+;
-MINUTE: INT+;
+DATE: INT+ DASH INT+ DASH INT INT INT INT COL INT+ DASH INT+;
 EQ  : '=' ;
 LT	: '<' ;
 GT 	: '>' ;
