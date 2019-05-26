@@ -125,3 +125,21 @@ class LanguageListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LanguageParser#dateexpr.
+    def enterDateexpr(self, ctx:LanguageParser.DateexprContext):
+        pass
+
+    # Exit a parse tree produced by LanguageParser#dateexpr.
+    def exitDateexpr(self, ctx:LanguageParser.DateexprContext):
+        pass
+
+
+    # Enter a parse tree produced by LanguageParser#datetimeexpr.
+    def enterDatetimeexpr(self, ctx:LanguageParser.DatetimeexprContext):
+        pass
+
+    # Exit a parse tree produced by LanguageParser#datetimeexpr.
+    def exitDatetimeexpr(self, ctx:LanguageParser.DatetimeexprContext):
+        pass
+
+
