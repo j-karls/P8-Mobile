@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
     private lateinit var mmHandler : MyHandler
     private val mmDeviceAddress : String = "B8:27:EB:4C:0D:D9"
     private val mmManager: FragmentManager = supportFragmentManager
-    private var mmDevice : BluetoothDevice = mmBTAdapter.getRemoteDevice(mmDeviceAddress)
+    private lateinit var mmDevice : BluetoothDevice
     private lateinit var mmBTService : BluetoothService
     private lateinit var mmRecyclerView: RecyclerView
     private lateinit var mmNotificationManager: NotificationManager
@@ -246,6 +246,7 @@ class MainActivity : AppCompatActivity(), SuperFragment.InputListener {
             startActivityForResult(intent,1)
         }
 
+        mmDevice = mmBTAdapter.getRemoteDevice(mmDeviceAddress)
         val pairedDevices: Set<BluetoothDevice>? = mmBTAdapter.bondedDevices
         // device is used if found in paired devices, otherwise uses backup
         val device = pairedDevices?.find { it.name == "Beacon 1" } ?: mmDevice
