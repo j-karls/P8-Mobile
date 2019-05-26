@@ -214,6 +214,11 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         else throw IllegalArgumentException("args cannot be empty")
     }
 
+    /**Writes unformatted to the device, USE AT OWN RISK*/
+    fun rawWrite(arg: String) {
+        write(arg)
+    }
+
     // companion that contains string builders for different commands one can use to communication with the Bluetooth
     // device, also contains message, error and content codes to be used by the handler.
     companion object {
