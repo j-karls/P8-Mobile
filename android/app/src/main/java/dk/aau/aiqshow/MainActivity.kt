@@ -40,34 +40,12 @@ private const val CHANNEL_ID = "dk.aau.aiqshow.alert"
 
 // a number of extension properties used in the program
 
-fun Boolean.toInt() = if (this) 1 else 0
-
 fun Int.toBool() = this > 0
 
 fun Double.round(decimals: Int): Double {
     var multiplier = 1.0
     repeat(decimals) { multiplier *= 10 }
     return round(this * multiplier) / multiplier
-}
-// a data class used to contain data readings from the sensor-box
-data class DataReading(val gasType: String, val value: Double, val time: LocalDateTime) {
-    override fun toString(): String {
-        return "Gas: $gasType, Value: ${value.roundToInt()}, Time: $time"
-    }
-}
-// a data class for containing a configuration
-data class Configuration(val mac: String, val subbed: Boolean, val guideline: String) {
-    override fun toString(): String {
-        return "CFG/[[\"$mac\",\"${subbed.toInt()}\",\"$guideline\"]]"
-    }
-}
-// a data class for containing an alert received from the sensor-box
-data class Alert(val temperature: Double, val humidity: Double,
-                 val co2: Double, val co: Double, val max : Pair<Double,String>,
-                 val problem : String,val solution : List<String>) {
-    override fun toString(): String {
-        return ""
-    }
 }
 
 class MainActivity : AppCompatActivity(), SuperFragment.InputListener {

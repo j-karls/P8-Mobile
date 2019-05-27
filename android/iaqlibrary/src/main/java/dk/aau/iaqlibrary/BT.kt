@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import android.os.SystemClock
 import android.util.Log
+import org.json.JSONObject
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -13,7 +14,10 @@ import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.roundToInt
 
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 private const val TAG = "BLUETOOTH_SERVICE_DEBUG"
 private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy:HH.mm")
@@ -283,5 +287,40 @@ class BluetoothService(private val handler: Handler, private val device: Bluetoo
         fun dateTimeFormatter(time: LocalDateTime) : String {
             return time.format(formatter)
         }
+    }
+}
+
+// a data class used to contain data readings from the sensor-box
+data class DataReading(val gasType: String, val value: Double, val time: LocalDateTime) {
+    override fun toString(): String {
+        return "Gas: $gasType, Value: ${value.roundToInt()}, Time: $time"
+    }
+}
+// a data class for containing a configuration
+data class Configuration(val mac: String, val subbed: Boolean, val guideline: String) {
+    override fun toString(): String {
+        return "CFG/[[\"$mac\",\"${subbed.toInt()}\",\"$guideline\"]]"
+    }
+}
+// a data class for containing an alert received from the sensor-box
+data class Alert(val temperature: Double, val humidity: Double,
+                 val co2: Double, val co: Double, val max : Pair<Double,String>,
+                 val problem : String,val solution : List<String>) {
+    override fun toString(): String {
+        return "ALT/${toJson()}"
+    }
+
+    private fun toJson() : JSONObject {
+        val thing = JSONObject()
+
+        thing.put("temperature",temperature)
+        thing.put("humidity",humidity)
+        thing.put("co2",co2)
+        thing.put("co",co)
+        thing.put("max",max)
+        thing.put("problem",problem)
+        thing.put("solution",solution)
+
+        return thing
     }
 }
