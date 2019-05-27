@@ -57,14 +57,14 @@ class LanguageVisitor(ParseTreeVisitor):
     def visitGetTimeExpr(self, ctx:LanguageParser.GetTimeExprContext):
         self.append(' time ')
         self.visitChildren(ctx)
-        self.append(' ' + self.fixTime(str(ctx.DATE())) + ' ')
+        self.append(' ' + self.formatTime(str(ctx.DATE())) + ' ')
 
     # Visit a parse tree produced by LanguageParser#getTimeIntervalExpr.
     def visitGetTimeIntervalExpr(self, ctx:LanguageParser.GetTimeIntervalExprContext):
         self.append(' time BETWEEN')
-        self.append(' ' + self.fixTime(str(ctx.DATE(0))) + ' ')
+        self.append(' ' + self.formatTime(str(ctx.DATE(0))) + ' ')
         self.append(' AND ')
-        self.append(' ' + self.fixTime(str(ctx.DATE(1))) + ' ')
+        self.append(' ' + self.formatTime(str(ctx.DATE(1))) + ' ')
 
     # Visit a parse tree produced by LanguageParser#getValueExpr.
     def visitGetValueExpr(self, ctx:LanguageParser.GetValueExprContext):
@@ -110,7 +110,7 @@ class LanguageVisitor(ParseTreeVisitor):
         self.append(' AND ')
         return self.visitChildren(ctx)
 
-    def fixTime(self, input):
+    def formatTime(self, input):
         date, time = input.split(':')
         day, month, year = date.split('-')
         hour, minute = time.split('.')
