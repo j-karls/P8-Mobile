@@ -37,7 +37,7 @@ def tempaqi(input):
         return (aqicalc1(input, temphighbp[4], temphighbp[5], aqibp[4], aqibp[5]), "high")
     elif(input<=20):
         while(i<5):
-            if(input >= templowbp[i] and input <= templowbp[i+1]):
+            if(input <= templowbp[i] and input >= templowbp[i+1]):
                 return (aqicalc2(input, templowbp[i+1], templowbp[i], aqibp[i], aqibp[i+1]), "low")
             i += 1
     elif(input>20):
@@ -52,7 +52,7 @@ def humiaqi(input):
     i = 0
     if(input<=50):
         while(i<3):
-            if(input >= humilowbp[i] and input <= humilowbp[i+1]):
+            if(input <= humilowbp[i] and input >= humilowbp[i+1]):
                 return (aqicalc2(input, humilowbp[i+1], humilowbp[i], aqibp[i], aqibp[i+1]), "low")
             i += 1
     elif(input>50):
