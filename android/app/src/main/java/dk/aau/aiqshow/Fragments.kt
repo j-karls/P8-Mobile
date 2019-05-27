@@ -21,6 +21,7 @@ import java.time.LocalTime
 open class SuperFragment : Fragment() {
 
     protected val gasArray = arrayOf("CO","CO2","Humidity","Temperature")
+    protected val gasValueArray = arrayOf("co","co2","hum","temp")
     protected val compArray = arrayOf("Equal to","More than","Less than")
     protected val dateArray = arrayOf("Since","Before")
     protected val compValueArray = arrayOf("=",">","<")
@@ -104,7 +105,7 @@ class TimeIntervalFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getTimeInterval(mmGas.selectedItem.toString(), mmDateListenerFrom.getTime(),
+        val message: String = get.getTimeInterval(gasValueArray[mmGas.selectedItemPosition], mmDateListenerFrom.getTime(),
             mmDateListenerTo.getTime())
         sendGET(message)
     }
@@ -143,7 +144,7 @@ class TimeFragment : SuperFragment() {
     }
 
     private fun send() {
-        val gas = mmGas.selectedItem.toString()
+        val gas = gasValueArray[mmGas.selectedItemPosition]
         val comp = compValueArray[mmComp.selectedItemPosition + 1] // +1 because the dateArray doesn't contain "="
         val time = mmDateListener.getTime()
 
@@ -181,7 +182,7 @@ class ValueFragment : SuperFragment() {
     }
 
     private fun send() {
-        val gas = mmGas.selectedItem.toString()
+        val gas = gasValueArray[mmGas.selectedItemPosition]
         val comp = compValueArray[mmComp.selectedItemPosition]
         val value: Float = if (mmValue.text.toString().isNotEmpty()) mmValue.text.toString().toFloat() else 0F
 
@@ -257,7 +258,7 @@ class StatusFragment : SuperFragment() {
     }
 
     private fun send() {
-        val message: String = get.getStatus(mmGas.selectedItem.toString())
+        val message: String = get.getStatus(gasValueArray[mmGas.selectedItemPosition])
 
         sendGET(message)
     }
